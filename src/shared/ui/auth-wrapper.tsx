@@ -3,6 +3,7 @@ import { type PropsWithChildren } from "react";
 import Link from "next/link";
 
 import {
+  AuthSocials,
   Button,
   Card,
   CardContent,
@@ -29,16 +30,18 @@ export function AuthWrapper({
   isShowSocial = false,
 }: PropsWithChildren<AuthWrapperProps>) {
   return (
-    <Card className="w-full max-w-[400px]">
+    <Card className="w-[400px] shrink-0">
       <CardHeader>
         <CardTitle>{heading}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
-      {isShowSocial && <div>Social</div>}
-      <CardContent>{children}</CardContent>
+      <CardContent>
+        {isShowSocial && <AuthSocials />}
+        {children}
+      </CardContent>
       <CardFooter>
         {backButtonLabel && (
-          <Button variant="outline" asChild className="w-full font-normal">
+          <Button variant="link" asChild className="w-full font-normal">
             <Link href={backButtonHref ?? "/"}>{backButtonLabel}</Link>
           </Button>
         )}
