@@ -1,6 +1,7 @@
 "use client";
 
 import { type PropsWithChildren, useState } from "react";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 export function TanstackProvider({ children }: PropsWithChildren) {
@@ -12,7 +13,7 @@ export function TanstackProvider({ children }: PropsWithChildren) {
             refetchOnWindowFocus: false,
           },
         },
-      }),
+      })
   );
 
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
