@@ -1,7 +1,11 @@
 "use client";
 
+import { useState } from "react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import { type LoginSchemaType, loginSchema } from "@/features/auth/schemas";
 
@@ -18,16 +22,22 @@ import {
 } from "@/shared/ui";
 
 export function LoginForm() {
+  const [recaptcha, setRecaptcha] = useState<string | null>(null);
   const form = useForm<LoginSchemaType>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: "asdasd@asdasd.com",
+      password: "asdasdA4444",
     },
   });
 
   const onSubmit = (values: LoginSchemaType) => {
-    console.log(values);
+    if (!recaptcha) {
+      toast.error("Please verify you are human");
+      return;
+    }
+
+    console.log(values, recaptcha);
   };
 
   return (
@@ -59,6 +69,12 @@ export function LoginForm() {
             </FormItem>
           )}
         />
+        <div className="flex items-center justify-center">
+          <ReCAPTCHA
+            sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY as string}
+            onChange={setRecaptcha}
+          />
+        </div>
         <Button type="submit" className="w-full">
           Login
         </Button>
