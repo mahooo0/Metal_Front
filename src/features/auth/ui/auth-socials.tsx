@@ -1,12 +1,30 @@
+"use client";
+
 import { FaGoogle } from "react-icons/fa";
 
-import { Button } from "./button";
+import { useProviderLogin } from "@/features/auth/hooks";
+
+import { Button } from "@/shared/ui";
 
 export function AuthSocials() {
+  const { providerLogin, isProviderLoginPending } = useProviderLogin();
+
+  const handleProviderLogin = async (provider: "google") => {
+    const response = await providerLogin({ provider });
+
+    if (response.url) {
+      window.location.href = response.url;
+    }
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 gap-4">
-        <Button variant="outline" className="w-full">
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => handleProviderLogin("google")}
+          disabled={isProviderLoginPending}>
           <FaGoogle className="mr-2 size-4" />
           Continue with Google
         </Button>

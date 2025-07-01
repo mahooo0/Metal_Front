@@ -7,10 +7,8 @@ import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import {
-  type RegisterSchemaType,
-  registerSchema,
-} from "@/features/auth/schemas";
+import { useLogin } from "@/features/auth/hooks";
+import { type LoginSchemaType, loginSchema } from "@/features/auth/schemas";
 
 import {
   Button,
@@ -24,26 +22,25 @@ import {
   PasswordInput,
 } from "@/shared/ui";
 
-export function RegisterForm() {
+export function LoginForm() {
   const [recaptcha, setRecaptcha] = useState<string | null>(null);
+  const { login, isLoginPending } = useLogin();
 
-  const form = useForm<RegisterSchemaType>({
-    resolver: zodResolver(registerSchema),
+  const form = useForm<LoginSchemaType>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
-      name: "asdasd",
-      email: "asdasd@asdasd.com",
-      password: "asdasdA4444",
-      confirmPassword: "asdasdA4444",
+      email: "a.creatuse@gmail.com",
+      password: "MyPass123!",
     },
   });
 
-  const onSubmit = (values: RegisterSchemaType) => {
+  const onSubmit = (values: LoginSchemaType) => {
     if (!recaptcha) {
       toast.error("Please verify you are human");
       return;
     }
 
-    console.log(values, recaptcha);
+    login({ values, recaptcha });
   };
 
   return (
@@ -51,25 +48,16 @@ export function RegisterForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter your name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="Enter your email" {...field} />
+                <Input
+                  disabled={isLoginPending}
+                  placeholder="Enter your email"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -82,20 +70,11 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <PasswordInput placeholder="Enter your password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="confirmPassword"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
-              <FormControl>
-                <PasswordInput placeholder="Confirm your password" {...field} />
+                <PasswordInput
+                  disabled={isLoginPending}
+                  placeholder="Enter your password"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -107,8 +86,8 @@ export function RegisterForm() {
             onChange={setRecaptcha}
           />
         </div>
-        <Button type="submit" className="w-full">
-          Register
+        <Button type="submit" className="w-full" disabled={isLoginPending}>
+          Login
         </Button>
       </form>
     </Form>

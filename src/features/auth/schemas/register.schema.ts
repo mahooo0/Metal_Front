@@ -16,15 +16,15 @@ export const registerSchema = z
       .refine(val => /[0-9]/.test(val), {
         message: "Password must contain at least one number",
       }),
-    confirmPassword: z
+    passwordRepeat: z
       .string()
       .min(8, { message: "Password must be at least 8 characters" }),
   })
-  .superRefine(({ password, confirmPassword }, ctx) => {
-    if (password !== confirmPassword) {
+  .superRefine(({ password, passwordRepeat }, ctx) => {
+    if (password !== passwordRepeat) {
       ctx.addIssue({
         code: "custom",
-        path: ["confirmPassword"],
+        path: ["passwordRepeat"],
         message: "Passwords do not match",
       });
     }
