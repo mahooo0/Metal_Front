@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 import { useResetPassword } from "@/features/auth/hooks";
 import { RecoverySchemaType, recoverySchema } from "@/features/auth/schemas";

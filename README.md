@@ -118,13 +118,14 @@ pnpm dev
 
 ## 📋 Prerequisites
 
-| Tool        | Version | Installation                                      |
-| ----------- | ------- | ------------------------------------------------- |
-| **Node.js** | v18+    | [Download](https://nodejs.org/)                   |
-| **pnpm**    | v8+     | [Install Guide](https://pnpm.io/installation)     |
-| **Git**     | Latest  | [Install Git](https://git-scm.com/downloads)      |
+| Tool        | Version | Installation                                  |
+| ----------- | ------- | --------------------------------------------- |
+| **Node.js** | v18+    | [Download](https://nodejs.org/)               |
+| **pnpm**    | v8+     | [Install Guide](https://pnpm.io/installation) |
+| **Git**     | Latest  | [Install Git](https://git-scm.com/downloads)  |
 
 **Backend Dependency:**
+
 - [NestJS Auth Template Backend](https://github.com/andreyblck/nest-auth-template-backend) running on port 4000
 
 ---
@@ -136,10 +137,10 @@ pnpm dev
 <details>
 <summary><strong>🔐 Authentication Settings</strong></summary>
 
-| Variable                        | Description                 | Default                   | Required |
-| ------------------------------- | --------------------------- | ------------------------- | -------- |
-| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` | Google reCAPTCHA site key   | -                         | ✅       |
-| `SERVER_URL`                    | Backend API URL             | `http://localhost:4000`   | ✅       |
+| Variable                         | Description               | Default                 | Required |
+| -------------------------------- | ------------------------- | ----------------------- | -------- |
+| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` | Google reCAPTCHA site key | -                       | ✅       |
+| `SERVER_URL`                     | Backend API URL           | `http://localhost:4000` | ✅       |
 
 </details>
 
@@ -167,28 +168,28 @@ SERVER_URL=http://localhost:4000
 
 Built with **Radix UI** primitives and styled with **Tailwind CSS**:
 
-| Component         | Description                           | Location           |
-| ----------------- | ------------------------------------- | ------------------ |
-| **Button**        | Customizable button with variants     | `shared/ui`        |
-| **Input**         | Form input with validation            | `shared/ui`        |
-| **PasswordInput** | Password field with visibility toggle | `shared/ui`        |
-| **Form**          | React Hook Form integration           | `shared/ui`        |
-| **Card**          | Container component                   | `shared/ui`        |
-| **AuthWrapper**   | Authentication page layout            | `shared/ui`        |
-| **AuthSocials**   | Social login buttons                  | `shared/ui`        |
+| Component         | Description                           | Location    |
+| ----------------- | ------------------------------------- | ----------- |
+| **Button**        | Customizable button with variants     | `shared/ui` |
+| **Input**         | Form input with validation            | `shared/ui` |
+| **PasswordInput** | Password field with visibility toggle | `shared/ui` |
+| **Form**          | React Hook Form integration           | `shared/ui` |
+| **Card**          | Container component                   | `shared/ui` |
+| **AuthWrapper**   | Authentication page layout            | `shared/ui` |
+| **AuthSocials**   | Social login buttons                  | `shared/ui` |
 
 ### 🎨 Design System
 
 ```tsx
 // Example component usage
-import { Button, Input, Card } from "@/shared/ui";
+import { Button, Card, Input } from "@/shared/ui";
 
 <Card>
   <Input placeholder="Enter email" />
   <Button variant="primary" size="lg">
     Submit
   </Button>
-</Card>
+</Card>;
 ```
 
 ### 🌈 Theming
@@ -297,6 +298,7 @@ export default function LoginRoute() {
 ```tsx
 // ✅ Good: widgets/auth/login-page.tsx
 import { LoginForm } from "@/features/auth";
+
 import { AuthWrapper } from "@/shared/ui";
 
 export function LoginPage() {
@@ -366,17 +368,17 @@ shared/ → (no upper layer imports)
 
 ### 🔧 Available Scripts
 
-| Command           | Description                    |
-| ----------------- | ------------------------------ |
-| `pnpm dev`        | 🔥 Development with Turbopack  |
-| `pnpm build`      | 📦 Build for production        |
-| `pnpm start`      | 🚀 Start production server     |
-| `pnpm lint`       | 🔍 Run ESLint                  |
-| `pnpm lint:fix`   | 🔧 Fix ESLint issues           |
-| `pnpm format`     | ✨ Format with Prettier        |
+| Command             | Description                   |
+| ------------------- | ----------------------------- |
+| `pnpm dev`          | 🔥 Development with Turbopack |
+| `pnpm build`        | 📦 Build for production       |
+| `pnpm start`        | 🚀 Start production server    |
+| `pnpm lint`         | 🔍 Run ESLint                 |
+| `pnpm lint:fix`     | 🔧 Fix ESLint issues          |
+| `pnpm format`       | ✨ Format with Prettier       |
 | `pnpm format:check` | 📋 Check code formatting      |
-| `pnpm type-check` | 🔍 Run TypeScript checks       |
-| `pnpm check`      | ⚡ Run all quality checks      |
+| `pnpm type-check`   | 🔍 Run TypeScript checks      |
+| `pnpm check`        | ⚡ Run all quality checks     |
 
 ### 📝 Code Quality
 

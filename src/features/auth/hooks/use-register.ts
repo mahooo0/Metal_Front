@@ -9,9 +9,13 @@ import { toastMessageHandler } from "@/shared/utils";
 export const useRegister = () => {
   const { mutate: register, isPending: isRegisterPending } = useMutation({
     mutationKey: ["register"],
-    mutationFn: (
-      { values, recaptcha }: { values: RegisterSchemaType; recaptcha: string }
-    ) => {
+    mutationFn: ({
+      values,
+      recaptcha,
+    }: {
+      values: RegisterSchemaType;
+      recaptcha: string;
+    }) => {
       return authService.register(values, recaptcha);
     },
     onSuccess: () => {

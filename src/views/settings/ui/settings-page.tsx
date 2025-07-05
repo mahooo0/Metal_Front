@@ -12,11 +12,11 @@ import {
   Palette,
   Shield,
   Smartphone,
-  Upload,
   User,
 } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
+import { SettingsForm, SecuritySettings } from "@/features/user";
+
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import {
@@ -63,57 +63,7 @@ export function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Avatar Section */}
-                <div className="flex items-center space-x-4">
-                  <Avatar className="h-20 w-20">
-                    <AvatarFallback className="text-lg">JD</AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-2">
-                    <Button variant="outline" size="sm">
-                      <Upload className="mr-2 h-4 w-4" />
-                      Change Avatar
-                    </Button>
-                    <p className="text-xs text-muted-foreground">
-                      JPG, PNG or GIF. Max size 2MB.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Form Fields */}
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" defaultValue="John" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" defaultValue="Doe" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      defaultValue="john@example.com"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" defaultValue="+1 (555) 123-4567" />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="bio">Bio</Label>
-                  <textarea
-                    id="bio"
-                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    placeholder="Tell us about yourself..."
-                    defaultValue="Software engineer passionate about creating amazing user experiences."
-                  />
-                </div>
-
-                <Button>Save Changes</Button>
+                <SettingsForm />
               </CardContent>
             </Card>
 
@@ -275,111 +225,8 @@ export function SettingsPage() {
                   Manage your account security and privacy settings.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Password Section */}
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="currentPassword">Current Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="currentPassword"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter current password"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                        onClick={() => setShowPassword(!showPassword)}>
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="newPassword">New Password</Label>
-                      <Input
-                        id="newPassword"
-                        type="password"
-                        placeholder="Enter new password"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirm Password</Label>
-                      <Input
-                        id="confirmPassword"
-                        type="password"
-                        placeholder="Confirm new password"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Two-Factor Authentication */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="flex items-center gap-2">
-                        <Key className="h-4 w-4" />
-                        Two-Factor Authentication
-                      </Label>
-                      <p className="text-sm text-muted-foreground">
-                        Add an extra layer of security to your account
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="secondary">Not Enabled</Badge>
-                      <Button variant="outline" size="sm">
-                        Enable 2FA
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Active Sessions */}
-                <div className="space-y-4">
-                  <Label className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    Active Sessions
-                  </Label>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between rounded-lg border p-3">
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">Current Session</p>
-                        <p className="text-xs text-muted-foreground">
-                          Chrome on macOS • San Francisco, CA
-                        </p>
-                      </div>
-                      <Badge variant="default">Active</Badge>
-                    </div>
-                    <div className="flex items-center justify-between rounded-lg border p-3">
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">Mobile App</p>
-                        <p className="text-xs text-muted-foreground">
-                          iPhone • Last seen 2 hours ago
-                        </p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        Revoke
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex space-x-2">
-                  <Button>Update Password</Button>
-                  <Button variant="outline">Sign Out All Devices</Button>
-                </div>
+              <CardContent>
+                <SecuritySettings />
               </CardContent>
             </Card>
 
