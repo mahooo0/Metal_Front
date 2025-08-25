@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 
@@ -16,8 +17,22 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"form">) {
   const [showPassword, setShowPassword] = useState(false);
+  const [password, setPassword] = useState("");
+  const [login, setLogin] = useState("");
+  const router = useRouter();
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Login:", login);
+    console.log("Password:", password);
+    // Здесь можно добавить логику авторизации
+    router.push("/dashboard");
+  };
+
   return (
-    <form className={cn("flex flex-col gap-9", className)} {...props}>
+    <form
+      className={cn("flex flex-col gap-9", className)}
+      onSubmit={handleSubmit}
+      {...props}>
       <div className="flex flex-col text-start gap-2 ">
         <h1 className="text-base font-normal text-[#6D7A87]">
           З ПОВЕРНЕННЯМ 👋🏻
@@ -31,7 +46,14 @@ export function LoginForm({
           <Label htmlFor="login" className="text-sm text-[#3A4754]">
             Логин
           </Label>
-          <Input id="login" type="text" placeholder="Введіть логін" required />
+          <Input
+            id="login"
+            type="text"
+            placeholder="Введіть логін"
+            required
+            value={login}
+            onChange={e => setLogin(e.target.value)}
+          />
         </div>
         <div className="grid gap-3">
           <div className="flex items-center">
@@ -42,10 +64,11 @@ export function LoginForm({
           <div className="relative">
             <Input
               id="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Введіть пароль"
               required
-              value={showPassword ? "123456" : ""}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
             />
             <button
               type="button"
@@ -55,8 +78,8 @@ export function LoginForm({
             </button>
           </div>
         </div>
-        <Button size="lg" type="submit" className="w-full" asChild>
-          <Link href="/dashboard">УВІЙТИ</Link>
+        <Button size="lg" type="submit" className="w-full">
+          УВІЙТИ
         </Button>
       </div>
       <div className="text-start text-base text-[#6D7A87] ">

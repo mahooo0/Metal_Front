@@ -4,11 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Key } from "lucide-react";
 import { useForm } from "react-hook-form";
 
+import { useUpdateProfile } from "@/features/user/hooks";
 import {
   type SettingsSchemaType,
   settingsSchema,
 } from "@/features/user/schemas";
 
+import { useProfile } from "@/shared/hooks";
 import {
   Button,
   Form,
@@ -21,8 +23,6 @@ import {
   Input,
   Switch,
 } from "@/shared/ui";
-import { useProfile } from "@/shared/hooks";
-import { useUpdateProfile } from "@/features/user/hooks";
 
 export function SettingsForm() {
   const { user } = useProfile();
@@ -82,8 +82,8 @@ export function SettingsForm() {
                   />
                 </FormControl>
                 <FormDescription>
-                  We'll use this email for account notifications and security
-                  alerts.
+                  We&apos;ll use this email for account notifications and
+                  security alerts.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

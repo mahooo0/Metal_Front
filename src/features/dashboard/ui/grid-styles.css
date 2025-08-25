@@ -1,0 +1,53 @@
+/* Grid Layout Styles */
+.dev-helper {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.dev-helper .react-grid-item {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #333;
+}
+
+.dev-helper .react-grid-item:hover {
+  border-color: #007bff;
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+}
+
+.dev-helper .react-grid-item.react-draggable-dragging {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.dev-helper .react-grid-item.react-resizable-resizing {
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.dev-helper .react-resizable-handle {
+  background: #007bff;
+  border-radius: 2px;
+}
+
+.dev-helper .react-resizable-handle:hover {
+  background: #0056b3;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dev-helper {
+    padding: 8px;
+  }
+
+  .dev-helper .react-grid-item {
+    font-size: 14px;
+  }
+}
