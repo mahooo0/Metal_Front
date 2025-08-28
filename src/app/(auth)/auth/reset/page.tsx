@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 
-import { ResetPasswordPage } from "@/widgets/auth/reset-page";
+import ResetPassword from "@/features/reset-password/ui/page";
 
 export const metadata: Metadata = {
   title: "Reset Password",
 };
 
 export default function ResetPasswordRoute() {
-  return <ResetPasswordPage />;
+  return <ResetPassword />;
 }

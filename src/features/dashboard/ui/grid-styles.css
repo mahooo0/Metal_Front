@@ -8,7 +8,8 @@
 .dev-helper .react-grid-item {
   background: white;
   border: 2px solid #e0e0e0;
-  border-radius: 6px;
+  border-radius: 16px;
+  overflow: hidden;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
   display: flex;
@@ -30,15 +31,21 @@
 
 .dev-helper .react-grid-item.react-resizable-resizing {
   box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+  opacity: 0;
 }
 
 .dev-helper .react-resizable-handle {
-  background: #007bff;
   border-radius: 2px;
+  opacity: 0;
 }
 
 .dev-helper .react-resizable-handle:hover {
-  background: #0056b3;
+  opacity: 0;
+}
+
+/* Widget card hover effect */
+.widget-card-hover:hover {
+  box-shadow: 4px 6px 25px 0px #6b72806d !important;
 }
 
 /* Responsive adjustments */

@@ -1,106 +1,191 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 
+import { useDashboardStore } from "@/shared/stores/dashboard-store";
+import { X } from "lucide-react";
 import { Layout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
+import { widgetComponents } from "@/features/dashboard/constants/widgets";
+import { useWidgetComponents } from "@/features/dashboard/hooks/use-widget-components";
+
+import AddWidgetDialog from "./add-widget-dialog";
+import EmptyCellButton from "./empty-cell-button";
 import "./grid-styles.css";
 import PageLayout from "./page-layout";
 
-const layouts: { [key: string]: Layout[] } = {
-  xxl: [
-    { i: "l1", x: 0, y: 0, w: 4, h: 4, resizeHandles: ["e"] },
-    { i: "m1", x: 4, y: 0, w: 4, h: 3 },
-    { i: "m2", x: 4, y: 5, w: 4, h: 3 },
-    { i: "r1", x: 8, y: 0, w: 4, h: 5 },
-    { i: "l2", x: 0, y: 8, w: 4, h: 5 },
-    { i: "m3", x: 4, y: 9, w: 4, h: 3 },
-    { i: "r2", x: 8, y: 8, w: 4, h: 2 },
-    { i: "r3", x: 8, y: 0, w: 4, h: 2, static: true }, // static: true для фиксированного позиционирования
-  ],
-  xl: [
-    { i: "l1", x: 0, y: 0, w: 3, h: 4, resizeHandles: ["e"] },
-    { i: "m1", x: 3, y: 0, w: 4, h: 3 },
-    { i: "m2", x: 3, y: 5, w: 4, h: 3 },
-    { i: "r1", x: 8, y: 0, w: 3, h: 5 },
-    { i: "l2", x: 0, y: 8, w: 3, h: 5 },
-    { i: "m3", x: 3, y: 9, w: 4, h: 3 },
-    { i: "r2", x: 8, y: 8, w: 3, h: 2 },
-    { i: "r3", x: 8, y: 0, w: 3, h: 2 },
-  ],
-  lg: [
-    { i: "l1", x: 0, y: 0, w: 3, h: 4, resizeHandles: ["e"] },
-    { i: "m1", x: 3, y: 0, w: 2, h: 3 },
-    { i: "m2", x: 3, y: 5, w: 2, h: 3 },
-    { i: "r1", x: 8, y: 0, w: 3, h: 5 },
-    { i: "l2", x: 0, y: 8, w: 3, h: 5 },
-    { i: "m3", x: 3, y: 9, w: 2, h: 3 },
-    { i: "r2", x: 8, y: 8, w: 3, h: 2 },
-    { i: "r3", x: 8, y: 0, w: 3, h: 2 },
-  ],
-  md: [
-    { i: "l1", x: 0, y: 0, w: 3, h: 4, resizeHandles: ["e"] },
-    { i: "m1", x: 3, y: 0, w: 3, h: 3 },
-    { i: "m2", x: 3, y: 3, w: 3, h: 3 },
-    { i: "r1", x: 0, y: 8, w: 3, h: 4 },
-    { i: "l2", x: 0, y: 8, w: 3, h: 5 },
-    { i: "m3", x: 3, y: 5, w: 3, h: 3 },
-    { i: "r2", x: 8, y: 8, w: 3, h: 2 },
-    { i: "r3", x: 8, y: 0, w: 3, h: 2 },
-  ],
-  sm: [
-    { i: "l1", x: 0, y: 0, w: 2, h: 3, resizeHandles: ["e"] },
-    { i: "m1", x: 3, y: 0, w: 2, h: 2 },
-    { i: "m2", x: 3, y: 0, w: 2, h: 2 },
-    { i: "r1", x: 0, y: 0, w: 2, h: 3 },
-    { i: "l2", x: 0, y: 0, w: 2, h: 4 },
-    { i: "m3", x: 3, y: 0, w: 2, h: 2 },
-    { i: "r2", x: 3, y: 0, w: 2, h: 2 },
-    { i: "r3", x: 3, y: 0, w: 2, h: 2 },
-  ],
-  xs: [
-    { i: "l1", x: 0, y: 0, w: 2, h: 3, resizeHandles: ["e"] },
-    { i: "m1", x: 0, y: 0, w: 2, h: 2 },
-    { i: "m2", x: 0, y: 0, w: 2, h: 2 },
-    { i: "r1", x: 0, y: 0, w: 2, h: 3 },
-    { i: "l2", x: 0, y: 0, w: 2, h: 4 },
-    { i: "m3", x: 0, y: 0, w: 2, h: 2 },
-    { i: "r2", x: 0, y: 0, w: 2, h: 2 },
-    { i: "r3", x: 0, y: 0, w: 2, h: 2 },
-  ],
-};
-
 export default function DashboardContentDnd() {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
+
+  // Zustand store
+  const { widgets, layouts, addWidget, updateLayout, removeWidget } =
+    useDashboardStore();
+
+  // Get widgets with components
+  const widgetsWithComponents = useWidgetComponents(widgets);
+
+  console.log("Widgets from store:", widgets);
+  console.log("Widgets with components:", widgetsWithComponents);
+
+  // Initialize empty grid if no layouts exist
+  useEffect(() => {
+    if (!layouts.lg || layouts.lg.length === 0) {
+      console.log("No layouts found, using default empty grid");
+    }
+  }, [layouts.lg]);
+
+  // Handle widget deletion
+  const handleDeleteWidget = (widgetId: string) => {
+    if (!window.confirm("Вы уверены, что хотите удалить этот виджет?")) {
+      return;
+    }
+
+    removeWidget(widgetId);
+
+    // Replace widget with empty cell
+    const removedLayout = layouts.lg.find(layout => layout.i === widgetId);
+    if (removedLayout) {
+      const emptyCellId = `empty_${Date.now()}`;
+      const updatedLayouts = {
+        lg: layouts.lg.map((layout: Layout) =>
+          layout.i === widgetId
+            ? ({
+                i: emptyCellId,
+                x: removedLayout.x,
+                y: removedLayout.y,
+                w: removedLayout.w,
+                h: removedLayout.h,
+                minW: removedLayout.w,
+                minH: removedLayout.h,
+                resizeHandles: ["n", "s", "e", "w", "ne", "nw", "se", "sw"],
+              } as Layout)
+            : layout
+        ),
+      };
+      updateLayout(updatedLayouts);
+    }
+  };
+
+  // Handle widget addition
+  const handleAddWidget = (widgetType: string, cellId?: string) => {
+    const widgetConfig = widgetComponents[widgetType];
+
+    if (!widgetConfig) return;
+
+    const { component: Component, defaultSize } = widgetConfig;
+
+    if (cellId) {
+      // Add widget to specific cell
+      addWidget(cellId, { type: widgetType, component: Component });
+
+      const updatedLayouts = {
+        lg: layouts.lg.map((layout: Layout) =>
+          layout.i === cellId
+            ? ({
+                ...layout,
+                w: defaultSize.w,
+                h: defaultSize.h,
+                minW: defaultSize.w,
+                minH: defaultSize.h,
+                resizeHandles: ["n", "s", "e", "w", "ne", "nw", "se", "sw"],
+              } as Layout)
+            : layout
+        ),
+      };
+      updateLayout(updatedLayouts);
+    } else {
+      // Add new widget at the end
+      const widgetId = `widget_${Date.now()}`;
+      addWidget(widgetId, { type: widgetType, component: Component });
+
+      const newLayout = {
+        lg: [
+          ...layouts.lg,
+          {
+            i: widgetId,
+            x: 0,
+            y: Math.max(...layouts.lg.map((l: Layout) => l.y + l.h)) + 1,
+            w: defaultSize.w,
+            h: defaultSize.h,
+            minW: defaultSize.w,
+            minH: defaultSize.h,
+            resizeHandles: ["n", "s", "e", "w", "ne", "nw", "se", "sw"],
+          } as Layout,
+        ],
+      };
+      updateLayout(newLayout as any);
+    }
+  };
+
+  // Render widget with delete button
+  const renderWidget = (layout: Layout, widget: any) => {
+    const WidgetComponent = widget.component;
+    return (
+      <div key={layout.i} className="relative group">
+        <button
+          onClick={() => handleDeleteWidget(layout.i)}
+          className="absolute top-2 right-2 bg-[#495969] hover:bg-red-500 cursor-pointer rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10"
+          title="Удалить виджет">
+          <X className="w-4 h-4" color="white" />
+        </button>
+        <WidgetComponent />
+      </div>
+    );
+  };
+
+  // Render empty cell
+  const renderEmptyCell = (layout: Layout) => {
+    return (
+      <div
+        key={layout.i}
+        className="flex items-center justify-center h-full bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
+        <EmptyCellButton
+          onClick={cellId => {
+            setSelectedCellId(cellId);
+            setIsDialogOpen(true);
+          }}
+          cellId={layout.i}
+        />
+      </div>
+    );
+  };
+
   return (
     <div className="mt-6 w-full overflow-hidden">
-      <PageLayout layouts={layouts}>
-        <div key="l1" className="bg-blue-100">
-          Левая панель 1
-        </div>
-        <div key="m1" className="bg-green-100">
-          Средняя панель 1
-        </div>
-        <div key="m2" className="bg-yellow-100">
-          Средняя панель 2
-        </div>
-        <div key="r1" className="bg-red-100">
-          Правая панель 1
-        </div>
-        <div key="l2" className="bg-purple-100">
-          Левая панель 2
-        </div>
-        <div key="m3" className="bg-pink-100">
-          Средняя панель 3
-        </div>
-        <div key="r2" className="bg-indigo-100">
-          Правая панель 2
-        </div>
-        <div key="r3" className="bg-orange-100">
-          Правая панель 3
-        </div>
+      <PageLayout
+        layouts={layouts}
+        onLayoutChange={(currentLayout, allLayouts) => {
+          updateLayout(allLayouts as any);
+        }}>
+        {layouts.lg.map(layout => {
+          const widget = widgetsWithComponents[layout.i];
+
+          if (widget && widget.component) {
+            return renderWidget(layout, widget);
+          } else {
+            const isEmptyCell = layout.i.startsWith("empty_");
+            if (isEmptyCell) {
+              return renderEmptyCell(layout);
+            } else {
+              return <div key={layout.i} className="bg-gray-100" />;
+            }
+          }
+        })}
       </PageLayout>
+
+      <AddWidgetDialog
+        isOpen={isDialogOpen}
+        onClose={() => {
+          setIsDialogOpen(false);
+          setSelectedCellId(null);
+        }}
+        onAddWidget={widgetType =>
+          handleAddWidget(widgetType, selectedCellId || undefined)
+        }
+      />
     </div>
   );
 }

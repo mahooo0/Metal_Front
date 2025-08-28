@@ -1,25 +1,27 @@
+"use client";
+
+import { useState } from "react";
+
 import Image from "next/image";
 
 import logo from "@/public/Logo.png";
 import loginImage from "@/public/login.png";
 
-import { ResetPasswordForm } from "@/shared/reset-password-form";
+import { LoginForm } from "@/features/login/ui/login-form";
 
-export default function ResetPassword() {
+export default function LoginPage() {
   return (
-    <div className=" h-screen px-[64px] py-[71px] grid lg:grid-cols-2">
+    <div className="grid min-h-svh lg:grid-cols-2 px-[64px] py-[71px] w-full">
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start ">
           <Image src={logo} alt="logo" className="mt-[58px]" />
         </div>
         <div className="flex flex-1 items-center justify-start">
           <div className="w-full ">
-            <ResetPasswordForm />
+            <LoginForm />
           </div>
         </div>
       </div>
-
-      {/* Right Section - Decorative Pattern */}
       <div className="   lg:flex hidden justify-center items-center">
         <img
           src={loginImage.src}

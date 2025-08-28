@@ -85,7 +85,7 @@ export function LoginForm({
       <div className="text-start text-base text-[#6D7A87] ">
         Забули пароль?{" "}
         <Link
-          href="/reset-password"
+          href="/auth/reset"
           className="text-[#3A4754]  text-base font-semibold uppercase hover:underline">
           Перейдіть за посиланням{" "}
         </Link>
