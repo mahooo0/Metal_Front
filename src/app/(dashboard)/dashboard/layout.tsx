@@ -1,3 +1,5 @@
+import MainProvider from "@/app/providers/main.provaider";
+
 import DashboardAside from "@/features/dashboard/ui/aside";
 import DashboardHeader from "@/features/dashboard/ui/header";
 
@@ -7,12 +9,14 @@ export default function DashboardLayoutWrapper({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#F6F6F6]">
-      <DashboardHeader />
-      <div className="flex">
-        <DashboardAside />
-        <main className="flex-1 p-6">{children}</main>
+    <MainProvider>
+      <div className="min-h-screen bg-[#F6F6F6]">
+        <DashboardHeader />
+        <div className="flex">
+          <DashboardAside />
+          <main className="flex-1 p-6">{children}</main>
+        </div>
       </div>
-    </div>
+    </MainProvider>
   );
 }

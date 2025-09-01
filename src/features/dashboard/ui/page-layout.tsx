@@ -20,14 +20,14 @@ const PageLayout: React.FC<PageLayoutProps> = ({
   const [currentBreakPoints, setCurrentBreakPoints] = useState<string>("");
 
   const defaultProps = {
-    className: "dev-helper",
+    className: "dev-helper ",
     isDraggable: true,
     isResizable: true,
     breakpoints: { lg: 992 },
     cols: { lg: 11 },
+    margin: [12, 12] as [number, number],
+    // containerPadding: [24, 24] as [number, number],
     rowHeight: 100,
-    margin: [24, 24] as [number, number],
-    containerPadding: [24, 24] as [number, number],
     onBreakpointChange: setCurrentBreakPoints,
     layouts: layouts,
     onLayoutChange: onLayoutChange,

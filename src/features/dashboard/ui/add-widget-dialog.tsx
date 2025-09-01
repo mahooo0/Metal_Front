@@ -33,6 +33,12 @@ export default function AddWidgetDialog({
         return "col-span-5";
       case 6:
         return "col-span-6";
+      case 7:
+        return "col-span-7";
+      case 8:
+        return "col-span-8";
+      case 9:
+        return "col-span-9";
       default:
         return "col-span-3";
     }
@@ -47,7 +53,7 @@ export default function AddWidgetDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-11 gap-6">
+        <div className="grid grid-cols-9 gap-6">
           {widgetTypes.map(widget => {
             const WidgetComponent = widget.component;
             return (

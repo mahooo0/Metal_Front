@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 
-import { useDashboardStore } from "@/shared/stores/dashboard-store";
 import { X } from "lucide-react";
 import { Layout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
@@ -10,6 +9,8 @@ import "react-resizable/css/styles.css";
 
 import { widgetComponents } from "@/features/dashboard/constants/widgets";
 import { useWidgetComponents } from "@/features/dashboard/hooks/use-widget-components";
+
+import { useDashboardStore } from "@/shared/stores/dashboard-store";
 
 import AddWidgetDialog from "./add-widget-dialog";
 import EmptyCellButton from "./empty-cell-button";
@@ -126,7 +127,7 @@ export default function DashboardContentDnd() {
     return (
       <div key={layout.i} className="relative group">
         <button
-          onClick={() => handleDeleteWidget(layout.i)}
+          onMouseDown={() => handleDeleteWidget(layout.i)}
           className="absolute top-2 right-2 bg-[#495969] hover:bg-red-500 cursor-pointer rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10"
           title="Удалить виджет">
           <X className="w-4 h-4" color="white" />
@@ -138,17 +139,17 @@ export default function DashboardContentDnd() {
 
   // Render empty cell
   const renderEmptyCell = (layout: Layout) => {
+    const handleCellClick = (cellId: string) => {
+      setSelectedCellId(cellId);
+      setIsDialogOpen(true);
+    };
+
     return (
       <div
+        onPointerDown={() => handleCellClick(layout.i)}
         key={layout.i}
-        className="flex items-center justify-center h-full bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
-        <EmptyCellButton
-          onClick={cellId => {
-            setSelectedCellId(cellId);
-            setIsDialogOpen(true);
-          }}
-          cellId={layout.i}
-        />
+        className="flex items-center cursor-pointer justify-center h-full bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
+        <EmptyCellButton />
       </div>
     );
   };
@@ -179,12 +180,14 @@ export default function DashboardContentDnd() {
       <AddWidgetDialog
         isOpen={isDialogOpen}
         onClose={() => {
+          console.log("Dialog closing"); // Для отладки
           setIsDialogOpen(false);
           setSelectedCellId(null);
         }}
-        onAddWidget={widgetType =>
-          handleAddWidget(widgetType, selectedCellId || undefined)
-        }
+        onAddWidget={widgetType => {
+          console.log("Adding widget:", widgetType, "to cell:", selectedCellId); // Для отладки
+          handleAddWidget(widgetType, selectedCellId || undefined);
+        }}
       />
     </div>
   );

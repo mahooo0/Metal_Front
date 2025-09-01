@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useMutation } from "@tanstack/react-query";

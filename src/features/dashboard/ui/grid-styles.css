@@ -2,7 +2,6 @@
 .dev-helper {
   background: #f5f5f5;
   border-radius: 8px;
-  padding: 16px;
 }
 
 .dev-helper .react-grid-item {
@@ -49,12 +48,3 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
-  .dev-helper {
-    padding: 8px;
-  }
-
-  .dev-helper .react-grid-item {
-    font-size: 14px;
-  }
-}
