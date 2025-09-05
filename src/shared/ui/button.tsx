@@ -21,13 +21,18 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        blue: "bg-[#1D96F9] text-white hover:bg-white hover:text-[#1D96F9] transition-all border border-[#1D96F9]",
         blueTransparent:
           "bg-transparent text-[#1D96F9] border border-[#1D96F9] hover:bg-[#1D96F9] hover:text-white transition-all",
+        balck:
+          "bg-[#3A4754] text-white hover:bg-white border border-[#3A4754]  hover:text-[#3A4754] transition-all",
+        BlackTransparent:
+          "bg-transparent text-[#3A4754] border border-[#3A4754] hover:bg-[#3A4754] hover:text-white transition-all",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
         sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        lg: "h-12 rounded-[48px] px-6 has-[>svg]:px-4 ",
         icon: "size-9",
         custom: "w-[91px] h-[42px] rounded-[48px] gap-2 px-6 py-3",
       },

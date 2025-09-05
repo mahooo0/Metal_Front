@@ -38,7 +38,7 @@ export default function DashboardHeader() {
   };
 
   return (
-    <header className=" py-[20px] px-6">
+    <header className=" py-[20px] px-6 sticky top-0 z-10">
       <div className="bg-white px-3 py-4  rounded-[48px] ">
         <div className="flex items-center justify-between">
           {/* Left Section - Logo and Back Button */}

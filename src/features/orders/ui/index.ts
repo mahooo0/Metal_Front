@@ -6,4 +6,3 @@ export { default as UserAvatars } from "./user-avatars";
 export { default as OrdersHeader } from "./orders-header";
 export { default as OrdersStats } from "./orders-stats";
 export { default as StatusIndicators } from "./status-indicators";
-export { default as OrdersTable } from "./orders-table";

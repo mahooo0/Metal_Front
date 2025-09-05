@@ -45,8 +45,8 @@ export default function DashboardAside() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-[90px] bg-white border-r border-gray-200 min-h-[calc(100vh-120px)]  rounded-tr-[24px]">
-      <div className=" pt-[24px]">
+    <aside className="w-[90px] bg-white border-r border-gray-200 h-[calc(100vh-120px)] sticky top-[120px] z-10  rounded-tr-[24px]">
+      <div className=" pt-[24px] ">
         {/* Dashboard Header */}
 
         {/* Navigation */}

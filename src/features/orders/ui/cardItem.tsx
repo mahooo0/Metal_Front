@@ -8,6 +8,7 @@ import { CalendarCheckIcon, Clock7Icon } from "lucide-react";
 import { useDateFormatting } from "../hooks";
 import type { Card } from "../types";
 import UserAvatars from "./user-avatars";
+import { useRouter } from "next/navigation";
 
 export default function CardItem({
   card,
@@ -35,8 +36,13 @@ export default function CardItem({
     transition,
   };
 
+  const router = useRouter();
+  const handleCardClick = (id: string) => {
+    router.push(`/dashboard/order/${id}`);
+  };
   return (
     <div
+    onDoubleClick={() => handleCardClick(card.id)}
       ref={setNodeRef}
       style={style}
       className={clsx(
