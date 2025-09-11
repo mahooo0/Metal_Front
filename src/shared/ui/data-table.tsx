@@ -63,6 +63,8 @@ export interface DataTableProps<T> {
   currentPage?: number;
   totalPages?: number;
   className?: string;
+  showActionsColumn?: boolean;
+  customActions?: (row: T) => React.ReactNode;
 }
 
 export function DataTable<T extends Record<string, any>>({
@@ -80,6 +82,8 @@ export function DataTable<T extends Record<string, any>>({
   currentPage = 1,
   totalPages = 1,
   className = "",
+  showActionsColumn = true,
+  customActions,
 }: DataTableProps<T>) {
   // local copy to allow editing without mutating props
   const [rows, setRows] = React.useState<T[]>(data);
@@ -283,8 +287,7 @@ export function DataTable<T extends Record<string, any>>({
               <TableHead
                 key={String(column.key)}
                 className={`${column.width || "w-auto"} p-4 text-left font-medium text-[#3A4754] bg-[#EDEEF0] shadow-xs`}>
-                <div className="flex items-center gap-2">
-                  <span>{column.label}</span>
+                <div className="flex items-center gap-2 text-nowrap">
                   {column.sortable && (
                     <Button
                       variant="ghost"
@@ -294,13 +297,16 @@ export function DataTable<T extends Record<string, any>>({
                       {getSortIcon(column.key)}
                     </Button>
                   )}
+                  <span>{column.label}</span>
                 </div>
               </TableHead>
             ))}
             {/* Actions column header */}
-            <TableHead className="w-24 p-4 text-left font-medium text-[#3A4754] bg-[#EDEEF0] shadow-xs">
-              Дії
-            </TableHead>
+            {showActionsColumn && (
+              <TableHead className="w-24 p-4 text-left font-medium text-[#3A4754] bg-[#EDEEF0] shadow-xs">
+                Дії
+              </TableHead>
+            )}
           </TableRow>
         </TableHeader>
 
@@ -325,57 +331,62 @@ export function DataTable<T extends Record<string, any>>({
                 ))}
 
                 {/* actions */}
-                <TableCell className="px-6 py-4">
-                  {isEditing ? (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600"
-                        onClick={commitEdit}>
-                        <Check className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
-                        onClick={cancelEdit}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                {showActionsColumn && (
+                  <TableCell className="px-6 py-4">
+                    {isEditing ? (
+                      <div className="flex items-center gap-2">
                         <Button
-                          variant="ghost"
                           size="sm"
-                          className="h-8 w-8 p-0 hover:bg-gray-100">
-                          <MoreHorizontal className="h-4 w-4" />
+                          variant="ghost"
+                          className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600"
+                          onClick={commitEdit}>
+                          <Check className="h-4 w-4" />
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuItem
-                          className="cursor-pointer"
-                          onClick={() => onViewRow && onViewRow(row)}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          Переглянути
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="cursor-pointer"
-                          onClick={() => onEditRow && onEditRow(row)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Редагувати
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="cursor-pointer text-red-600 hover:text-red-700"
-                          onClick={() => onDeleteRow && onDeleteRow(row)}>
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Видалити
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </TableCell>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                          onClick={cancelEdit}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        {customActions && customActions(row)}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 hover:bg-gray-100">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuItem
+                              className="cursor-pointer"
+                              onClick={() => onViewRow && onViewRow(row)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              Переглянути
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="cursor-pointer"
+                              onClick={() => onEditRow && onEditRow(row)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Редагувати
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="cursor-pointer text-red-600 hover:text-red-700"
+                              onClick={() => onDeleteRow && onDeleteRow(row)}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Видалити
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             );
           })}
