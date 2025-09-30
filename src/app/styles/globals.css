@@ -120,3 +120,10 @@
     @apply bg-background text-foreground;
   }
 }
+.two-rows-only {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  -webkit-line-clamp: 2; /* forces max 2 rows */
+  text-overflow: clip;   /* prevents … ellipsis */
+}

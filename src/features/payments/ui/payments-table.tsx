@@ -93,72 +93,6 @@ const mockPayments: PaymentItem[] = [
     comment:
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   },
-  {
-    id: "6",
-    date: "14/06/2021",
-    accountNumber: "5432",
-    amount: 87654,
-    paymentMethod: "готівка",
-    paymentType: "передоплата",
-    responsible: "Alice Brown",
-    comment:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  },
-  {
-    id: "7",
-    date: "30/01/2022",
-    accountNumber: "2468",
-    amount: 12345,
-    paymentMethod: "б/г",
-    paymentType: "передоплата",
-    responsible: "Charlie Wilson",
-    comment:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  },
-  {
-    id: "8",
-    date: "18/04/2023",
-    accountNumber: "1357",
-    amount: 56789,
-    paymentMethod: "готівка",
-    paymentType: "передоплата",
-    responsible: "Diana Davis",
-    comment:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  },
-  {
-    id: "9",
-    date: "09/08/2023",
-    accountNumber: "8642",
-    amount: 23456,
-    paymentMethod: "б/г",
-    paymentType: "передоплата",
-    responsible: "Eve Miller",
-    comment:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  },
-  {
-    id: "10",
-    date: "25/11/2023",
-    accountNumber: "9753",
-    amount: 78901,
-    paymentMethod: "готівка",
-    paymentType: "передоплата",
-    responsible: "Frank Taylor",
-    comment:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  },
-  {
-    id: "11",
-    date: "12/02/2024",
-    accountNumber: "4680",
-    amount: 45678,
-    paymentMethod: "б/г",
-    paymentType: "передоплата",
-    responsible: "Grace Anderson",
-    comment:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  },
 ];
 
 // Column definitions for payments
@@ -266,10 +200,6 @@ export default function PaymentsTable() {
     // TODO: Implement save row functionality
   };
 
-  const _handleSelectAsMain = (_row: PaymentItem) => {
-    // TODO: Implement select as main functionality
-  };
-
   const handleEditRow = (_row: PaymentItem) => {
     // This will trigger edit mode in DataTable
   };
@@ -342,7 +272,6 @@ export default function PaymentsTable() {
 
         <div className="flex items-center gap-2">
           {/* Action buttons */}
-
           <Button variant="blue" size="lg" className="h-[42px]">
             <SquarePlus className="h-4 w-4" />
             Додати оплату

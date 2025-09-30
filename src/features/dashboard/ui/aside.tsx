@@ -13,6 +13,7 @@ import {
   Package,
   PieChart,
   ShoppingCart,
+  User,
   Users,
   Wallet,
 } from "lucide-react";
@@ -34,6 +35,7 @@ const navigation = [
   },
   { name: "Виробництво", href: "/dashboard/production", icon: Package },
   { name: "Склад", href: "/dashboard/warehouse", icon: Box },
+  { name: "Користувачі", href: "/dashboard/users", icon: User },
   {
     name: "Аналітика та планування",
     href: "/dashboard/analytics",
@@ -78,37 +80,6 @@ export default function DashboardAside() {
                 </Link>
               </Button>
             );
-            // return (
-            //   <Link key={item.name} href={item.href} className="">
-            //     <div className="flex flex-col items-center  group  justify-center">
-            //       <Button
-            //         size="sm"
-            //         className={cn(
-            //           "flex items-center justify-center bg-transparent hover:bg-transparent w-12 h-12  p-0",
-            //           isActive &&
-            //             "bg-[#3A4754] w-12 h-12 rounded-full border-[#3A4754] group-hover:bg-transparent"
-            //         )}>
-            //         <item.icon
-            //           className={cn(
-            //             "w-6 h-6 transition-colors",
-            //             isActive
-            //               ? "text-white group-hover:text-black"
-            //               : "text-gray-600  group-hover:text-gray-800"
-            //           )}
-            //         />
-            //       </Button>
-            //       <span
-            //         className={cn(
-            //           "text-[12px] text-wrap text-center leading-[150%] transition-colors px-1",
-            //           isActive
-            //             ? "text-[#3A4754] font-medium"
-            //             : "text-gray-600 group-hover:text-gray-800"
-            //         )}>
-            //         {item.name}
-            //       </span>
-            //     </div>
-            //   </Link>
-            // );
           })}
         </nav>
       </div>

@@ -199,7 +199,9 @@ export function DataTable<T extends Record<string, any>>({
       return column.render(row[key], row);
     }
     return (
-      <span className="text-sm text-gray-900">{String(row[key] ?? "")}</span>
+      <span className="text-sm text-gray-900 line-clamp-1">
+        {String(row[key] ?? "")}
+      </span>
     );
   };
 
@@ -286,7 +288,8 @@ export function DataTable<T extends Record<string, any>>({
             {columns.map(column => (
               <TableHead
                 key={String(column.key)}
-                className={`${column.width || "w-auto"} p-4 text-left font-medium text-[#3A4754] bg-[#EDEEF0] shadow-xs`}>
+                className="p-4 text-left font-medium text-[#3A4754] bg-[#EDEEF0] shadow-xs"
+                style={{ width: column.width }}>
                 <div className="flex items-center gap-2 text-nowrap">
                   {column.sortable && (
                     <Button
@@ -323,7 +326,8 @@ export function DataTable<T extends Record<string, any>>({
                 {columns.map(column => (
                   <TableCell
                     key={String(column.key)}
-                    className="px-6 py-4 text-sm shadow-xs">
+                    className="px-4 py-4 text-sm h-fit shadow-xs"
+                    style={{ width: column.width }}>
                     {isEditing
                       ? renderEditCell(column.key, current[column.key])
                       : renderReadCell(row, column.key)}
@@ -358,7 +362,7 @@ export function DataTable<T extends Record<string, any>>({
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-8 w-8 p-0 hover:bg-gray-100">
+                              className="h-4 w-4 p-0 hover:bg-gray-100">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>

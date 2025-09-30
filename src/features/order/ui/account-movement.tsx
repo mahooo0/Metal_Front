@@ -16,7 +16,7 @@ const chartData = [
 ];
 export default function AccountMovement() {
   return (
-    <div className="bg-white rounded-2xl py-5 px-6">
+    <div className="bg-white rounded-2xl py-5 px-6 h-full">
       {" "}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
