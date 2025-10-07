@@ -17,3 +17,5 @@ export * from "./switch";
 export * from "./accordion";
 export * from "./data-table";
 export * from "./pagination";
+export * from "./time-prediction-card";
+export * from "./animated-time-prediction-card";

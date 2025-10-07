@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { LoginSchemaType } from "@/features/auth/schemas";
 import { authService } from "@/features/auth/services";
 
-import { toastMessageHandler } from "@/shared/utils";
+import { toastMessageHandler } from "@/shared/utils/toast-message-handler";
 
 export const useLogin = (setIsShowCode: Dispatch<SetStateAction<boolean>>) => {
   const router = useRouter();

@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { NewPasswordSchemaType } from "@/features/auth/schemas";
 import { recoveryService } from "@/features/auth/services";
 
-import { toastMessageHandler } from "@/shared/utils";
+import { toastMessageHandler } from "@/shared/utils/toast-message-handler";
 
 export const useNewPassword = () => {
   const searchParams = useSearchParams();

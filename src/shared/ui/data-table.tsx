@@ -321,7 +321,7 @@ export function DataTable<T extends Record<string, any>>({
             return (
               <TableRow
                 key={String(row[idField])}
-                className={`border-gray-100 hover:bg-gray-50 ${isEditing ? "bg-gray-50/70" : ""}`}
+                className={`border-gray-100 hover:bg-[#EBFBFF] ${isEditing ? "bg-gray-50/70" : ""}`}
                 onDoubleClick={() => handleRowDoubleClick(row)}>
                 {columns.map(column => (
                   <TableCell

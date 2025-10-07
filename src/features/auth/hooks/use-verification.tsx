@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { verificationsService } from "@/features/auth/services";
 
-import { toastMessageHandler } from "@/shared/utils";
+import { toastMessageHandler } from "@/shared/utils/toast-message-handler";
 
 export const useVerification = () => {
   const router = useRouter();
