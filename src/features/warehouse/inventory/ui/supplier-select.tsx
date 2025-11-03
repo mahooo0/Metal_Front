@@ -45,10 +45,10 @@ export default function SupplierSelect({
               <SelectValue placeholder="input_label" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="supplier1">ТОВ "Сервіс+"</SelectItem>
-              <SelectItem value="supplier2">ТОВ "Метал-Сервіс"</SelectItem>
-              <SelectItem value="supplier3">ТОВ "Пром-Метал"</SelectItem>
-              <SelectItem value="supplier4">ТОВ "Метал-Трейд"</SelectItem>
+              <SelectItem value="supplier1">ТОВ &quot;Сервіс+&quot;</SelectItem>
+              <SelectItem value="supplier2">ТОВ &quot;Метал-Сервіс&quot;</SelectItem>
+              <SelectItem value="supplier3">ТОВ &quot;Пром-Метал&quot;</SelectItem>
+              <SelectItem value="supplier4">ТОВ &quot;Метал-Трейд&quot;</SelectItem>
             </SelectContent>
           </Select>
         </div>
