@@ -35,7 +35,8 @@ const navigation = [
     icon: Wallet,
     children: [
       { name: "Рух коштів", href: "/dashboard/finance" },
-      { name: "Витрати компанії", href: "/dashboard/planning" },
+      { name: "Витрати компанії", href: "/dashboard/finance/planning" },
+      { name: "календар", href: "/dashboard/finance/calendar" },
     ],
   },
   { name: "Контрагенти", href: "/dashboard/counterparties", icon: Users },
@@ -44,8 +45,30 @@ const navigation = [
     href: "/dashboard/plan-register",
     icon: CheckSquare,
   },
-  { name: "Виробництво", href: "/dashboard/production", icon: Package },
-  { name: "Склад", href: "/dashboard/warehouse", icon: Box },
+  {
+    name: "Виробництво",
+    href: "/dashboard/production/laser",
+    icon: Package,
+    children: [
+      { name: "Лазер", href: "/dashboard/production/laser" },
+      { name: "Гідра", href: "/dashboard/production/hydraulic" },
+      { name: "Гнуття", href: "/dashboard/production/bending" },
+    ],
+  },
+  {
+    name: "Склад",
+    href: "/dashboard/warehouse",
+    icon: Box,
+    children: [
+      { name: "Матеріали", href: "/dashboard/warehouse/materials" },
+      { name: "Закупівля", href: "/dashboard/warehouse/purchase" },
+      { name: "Списання", href: "/dashboard/warehouse/write-off" },
+      { name: "Інвентаризація", href: "/dashboard/warehouse/inventory" },
+      { name: "Постачальники", href: "/dashboard/warehouse/suppliers" },
+      { name: "Прайси", href: "/dashboard/warehouse/prices" },
+      { name: "Залишки", href: "/dashboard/warehouse/stock" },
+    ],
+  },
   { name: "Користувачі", href: "/dashboard/users", icon: User },
   {
     name: "Аналітика та планування",
@@ -121,6 +144,7 @@ export default function DashboardAside() {
                   ?.children?.map(item => (
                     <Button
                       key={item.name}
+                      asChild
                       className="bg-[#E8F4FE] hover:bg-white text-[#3A4754] px-3 py-2 rounded-md text-start flex items-center justify-start gap-2 ">
                       <Link href={item.href}>{item.name}</Link>
                     </Button>

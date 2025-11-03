@@ -1,0 +1,81 @@
+import type { SupplierItem } from "../types/supplier.types";
+
+export const mockSuppliers: SupplierItem[] = [
+  {
+    id: "1",
+    creationDate: "18/09/2016",
+    name: "eBay",
+    supplierId: "702.555.0122",
+    contacts: "(808) 555-0111",
+  },
+  {
+    id: "2",
+    creationDate: "28/10/2012",
+    name: "The Walt Disney Company",
+    supplierId: "629.555.0129",
+    contacts: "(629) 555-0129",
+  },
+  {
+    id: "3",
+    creationDate: "15/08/2017",
+    name: "The Walt Disney Company",
+    supplierId: "209.555.0104",
+    contacts: "(907) 555-0101",
+  },
+  {
+    id: "4",
+    creationDate: "07/05/2016",
+    name: "The Walt Disney Company",
+    supplierId: "205.555.0100",
+    contacts: "(229) 555-0109",
+  },
+  {
+    id: "5",
+    creationDate: "12/06/2020",
+    name: "General Electric",
+    supplierId: "808.555.0111",
+    contacts: "(303) 555-0105",
+  },
+  {
+    id: "6",
+    creationDate: "07/05/2016",
+    name: "Apple",
+    supplierId: "239.555.0108",
+    contacts: "(207) 555-0119",
+  },
+  {
+    id: "7",
+    creationDate: "16/08/2013",
+    name: "MasterCard",
+    supplierId: "201.555.0124",
+    contacts: "(684) 555-0102",
+  },
+  {
+    id: "8",
+    creationDate: "12/06/2020",
+    name: "IBM",
+    supplierId: "252.555.0126",
+    contacts: "(603) 555-0123",
+  },
+  {
+    id: "9",
+    creationDate: "07/05/2016",
+    name: "Starbucks",
+    supplierId: "303.555.0105",
+    contacts: "(252) 555-0126",
+  },
+  {
+    id: "10",
+    creationDate: "18/09/2016",
+    name: "Sony",
+    supplierId: "319.555.0115",
+    contacts: "(302) 555-0107",
+  },
+  {
+    id: "11",
+    creationDate: "28/10/2012",
+    name: "Gillette",
+    supplierId: "406.555.0120",
+    contacts: "(319) 555-0115",
+  },
+];

@@ -19,3 +19,4 @@ export * from "./data-table";
 export * from "./pagination";
 export * from "./time-prediction-card";
 export * from "./animated-time-prediction-card";
+export * from "./info-bar";
