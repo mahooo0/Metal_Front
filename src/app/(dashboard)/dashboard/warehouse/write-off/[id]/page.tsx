@@ -2,14 +2,15 @@ import React from "react";
 
 import WriteOffByIdPageClient from "./page.client";
 
-export default function WriteOffByIdPage({
+export default async function WriteOffByIdPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   return (
     <div>
-      <WriteOffByIdPageClient id={params.id} />
+      <WriteOffByIdPageClient id={id} />
     </div>
   );
 }
