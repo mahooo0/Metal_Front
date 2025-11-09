@@ -17,13 +17,12 @@ export const useResetPassword = () => {
         if (data.message) {
           toastMessageHandler(data.message);
         } else {
-          toast.success("Password reset successful", {
-            description: "Check your email for a link to reset your password",
+          toast.success("Лист відправлено!", {
+            description: "Перевірте свою пошту для відновлення паролю",
           });
         }
       },
       onError: error => {
-        console.log(error);
         toastMessageHandler(error);
       },
     });

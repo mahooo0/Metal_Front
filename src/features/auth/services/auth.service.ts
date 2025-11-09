@@ -8,7 +8,7 @@ import { User } from "@/features/auth/types";
 import { api } from "@/shared/api";
 
 class AuthService {
-  public async register(body: RegisterSchemaType, recaptcha: string) {
+  public async register(body: RegisterSchemaType, recaptcha?: string) {
     const headers = recaptcha ? { recaptcha } : undefined;
 
     const response = await api.post<User>(AUTH_URLS.register, body, {
@@ -18,7 +18,7 @@ class AuthService {
     return response;
   }
 
-  public async login(body: LoginSchemaType, recaptcha: string) {
+  public async login(body: LoginSchemaType, recaptcha?: string) {
     const headers = recaptcha ? { recaptcha } : undefined;
 
     const response = await api.post<User>(AUTH_URLS.login, body, { headers });
@@ -36,6 +36,12 @@ class AuthService {
 
   public async logout() {
     const response = await api.post(AUTH_URLS.logout);
+
+    return response;
+  }
+
+  public async getMe() {
+    const response = await api.get<User>(AUTH_URLS.me);
 
     return response;
   }

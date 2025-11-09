@@ -7,7 +7,11 @@ import Image from "next/image";
 import logo from "@/public/Logo.png";
 import loginImage from "@/public/login.png";
 
-import { LoginForm } from "@/features/login/ui/login-form";
+import { LoginForm } from "@/features/auth";
+
+// import { LoginForm } from "@/features/login/ui/login-form";
+
+import { AuthWrapper } from "@/shared/ui";
 
 export default function LoginPage() {
   return (
@@ -18,7 +22,14 @@ export default function LoginPage() {
         </div>
         <div className="flex flex-1 items-center justify-start">
           <div className="w-full ">
-            <LoginForm />
+            {/* <LoginForm /> */}
+            <AuthWrapper
+              className="w-[400px]"
+              heading="З ПОВЕРНЕННЯМ 👋🏻"
+              description="Перейдіть до свого облікового запису"
+              isShowSocial>
+              <LoginForm />
+            </AuthWrapper>
           </div>
         </div>
       </div>

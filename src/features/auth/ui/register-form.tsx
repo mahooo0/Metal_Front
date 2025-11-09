@@ -1,11 +1,7 @@
 "use client";
 
-import { useState } from "react";
-
 import { zodResolver } from "@hookform/resolvers/zod";
-import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 import { useRegister } from "@/features/auth/hooks";
 import {
@@ -26,26 +22,20 @@ import {
 } from "@/shared/ui";
 
 export function RegisterForm() {
-  const [recaptcha, setRecaptcha] = useState<string | null>(null);
   const { register, isRegisterPending } = useRegister();
 
   const form = useForm<RegisterSchemaType>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: "asdasd",
-      email: "a.creatuse@gmail.com",
-      password: "MyPass123!",
-      passwordRepeat: "MyPass123!",
+      name: "Maqa",
+      email: "muhhemmedibrahimov@gmail.com",
+      password: "SecurePass123!",
+      passwordRepeat: "SecurePass123!",
     },
   });
 
   const onSubmit = (values: RegisterSchemaType) => {
-    if (!recaptcha) {
-      toast.error("Please verify you are human");
-      return;
-    }
-
-    register({ values, recaptcha });
+    register({ values });
   };
 
   return (
@@ -119,12 +109,6 @@ export function RegisterForm() {
             </FormItem>
           )}
         />
-        <div className="flex items-center justify-center">
-          <ReCAPTCHA
-            sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY as string}
-            onChange={setRecaptcha}
-          />
-        </div>
         <Button type="submit" className="w-full" disabled={isRegisterPending}>
           Register
         </Button>

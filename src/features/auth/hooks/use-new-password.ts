@@ -24,15 +24,14 @@ export const useNewPassword = () => {
       if (data.message) {
         toastMessageHandler(data.message);
       } else {
-        toast.success("Password updated successfully", {
-          description: "Your password has been updated successfully",
+        toast.success("Пароль оновлено!", {
+          description: "Ваш пароль успішно оновлено",
         });
 
         router.push("/auth/login");
       }
     },
     onError: error => {
-      console.log(error);
       toastMessageHandler(error);
     },
   });

@@ -5,3 +5,4 @@ export { default as UserRolesCard } from "./user-roles-card";
 export { default as UserContactsCard } from "./user-contacts-card";
 export { default as UserNotificationsCard } from "./user-notifications-card";
 export { default as RestorePasswordDialog } from "./restore-password-dialog";
+export { default as AddUserDialog } from "./add-user-dialog";

@@ -14,7 +14,7 @@ export const useRegister = () => {
       recaptcha,
     }: {
       values: RegisterSchemaType;
-      recaptcha: string;
+      recaptcha?: string;
     }) => {
       return authService.register(values, recaptcha);
     },

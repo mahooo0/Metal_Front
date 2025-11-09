@@ -13,7 +13,10 @@ import {
   CardTitle,
 } from "@/shared/ui";
 
+import { cn } from "../lib/utils";
+
 type AuthWrapperProps = {
+  className?: string;
   heading?: string;
   description?: string;
   backButtonLabel?: string;
@@ -28,9 +31,10 @@ export function AuthWrapper({
   backButtonLabel,
   backButtonHref,
   isShowSocial = false,
+  className,
 }: PropsWithChildren<AuthWrapperProps>) {
   return (
-    <Card className="w-[400px] shrink-0">
+    <Card className={cn(" border-none shadow-none shrink-0", className)}>
       <CardHeader>
         <CardTitle>{heading}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}

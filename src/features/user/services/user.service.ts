@@ -13,6 +13,12 @@ class UserService {
     return response;
   }
 
+  public async findById(id: string) {
+    const response = await api.get<User>(`users/${id}`);
+
+    return response;
+  }
+
   public async updateProfile(data: SettingsSchemaType) {
     const response = await api.put("users/profile", data);
 

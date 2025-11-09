@@ -31,7 +31,7 @@ export const useLogin = (setIsShowCode: Dispatch<SetStateAction<boolean>>) => {
         setIsShowCode(true);
       } else {
         toast.success("Login successful");
-        router.push("/dashboard/settings");
+        router.push("/dashboard");
       }
     },
     onError: error => {

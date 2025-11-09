@@ -7,7 +7,7 @@ import Image from "next/image";
 import NeqrVockax from "@/public/neqr_s_ockami.png";
 import { MoreHorizontal, Pencil, SquarePenIcon } from "lucide-react";
 
-import { Avatar, AvatarImage } from "@/shared/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
 import {
   DropdownMenu,
@@ -19,8 +19,10 @@ import {
 interface UserProfileCardProps {
   user?: {
     id: string;
-    name: string;
-    avatar?: string;
+    displayName: string;
+    firstName: string;
+    lastName: string;
+    position: string;
     userId: string;
     lastModified?: string;
     comment?: string;
@@ -34,7 +36,10 @@ interface UserProfileCardProps {
 export default function UserProfileCard({
   user = {
     id: "1",
-    name: "Albert Flores",
+    displayName: "Albert Flores",
+    firstName: "Albert",
+    lastName: "Flores",
+    position: "Software Engineer",
     userId: "45776890690",
     lastModified: "Змінено Лист. 11",
     comment:
@@ -75,13 +80,13 @@ export default function UserProfileCard({
         <div className="flex items-center gap-4">
           {/* User Avatar */}
           <Avatar className="h-16 w-16">
-            <AvatarImage src={NeqrVockax.src} alt={user.name} />
+            <AvatarFallback>{user.displayName.charAt(0)}</AvatarFallback>
           </Avatar>
 
           {/* User Info */}
           <div className="flex flex-col">
             <h2 className="text-2xl font-bold text-[#3A4754] mb-1">
-              {user.name}
+              {user.displayName}
             </h2>
           </div>
         </div>

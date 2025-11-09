@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 import Logo from "@/public/Logo.png";
 import {
@@ -90,10 +91,6 @@ export default function DashboardHeader() {
                   variant="ghost"
                   className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10 border-2 border-gray-200">
-                    <AvatarImage
-                      src={user?.picture}
-                      alt={user?.displayName || "User"}
-                    />
                     <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold">
                       {user?.displayName?.charAt(0)?.toUpperCase() || "U"}
                     </AvatarFallback>
@@ -113,8 +110,12 @@ export default function DashboardHeader() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
+                  <Link
+                    href="/dashboard/profile"
+                    className="flex items-center gap-2">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Shield className="mr-2 h-4 w-4" />
