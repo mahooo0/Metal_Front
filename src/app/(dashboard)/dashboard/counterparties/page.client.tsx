@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
 import { PlusIcon } from "lucide-react";
 
@@ -43,7 +43,9 @@ export default function CounterpartiesPageClient() {
           <PlusIcon className="w-5 h-5" /> Додати контрагента
         </Button>
       </div>
-      <CounterpartiesFilter />
+      <Suspense fallback={<div className="bg-white rounded-2xl p-6 space-y-6 mt-5">Завантаження фільтрів...</div>}>
+        <CounterpartiesFilter />
+      </Suspense>
       <CounterpartiesTable />
 
       {/* Add Counterparty Dialog */}
