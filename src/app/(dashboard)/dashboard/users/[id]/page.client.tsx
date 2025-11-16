@@ -4,9 +4,10 @@ import React, { useState } from "react";
 
 import { useParams } from "next/navigation";
 
+import { useUserProfile } from "@/hooks/use-user-profile";
+
 import { useMe } from "@/features/auth/hooks";
 import CounterpartyDocuments from "@/features/counterparties/ui/counterparty-documents";
-import { useUserById } from "@/features/user/hooks";
 import {
   RestorePasswordDialog,
   UserContactsCard,
@@ -14,6 +15,7 @@ import {
   UserProfileCard,
   UserRolesCard,
 } from "@/features/users/ui";
+import { User } from "@/features/auth/types/user.types";
 
 export default function UsersByIdPageClient({
   isProfile,
@@ -32,7 +34,7 @@ export default function UsersByIdPageClient({
   const { user: profileUser, isLoading: isProfileLoading } = useMe(!!isProfile);
 
   // Получаем данные запрашиваемого пользователя, если это не страница профиля
-  const { user: userById, isLoading: isUserLoading } = useUserById(
+  const { user: userById, isLoading: isUserLoading } = useUserProfile(
     userId,
     !isProfile
   );
@@ -75,29 +77,41 @@ export default function UsersByIdPageClient({
     );
   }
 
-  // Адаптируем данные пользователя для компонента UserProfileCard
-  const adaptedUser = {
-    id: user.id,
-    displayName: user.displayName,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    position: user.position || "",
-    userId: user.id, // Используем id как userId
-    lastModified: user.updatedAt,
+
+  // Подготовка контактной информации с безопасными проверками типов
+  const uWithContacts = user as {
+    extraPhones?: string[];
+    email?: string;
+    phone?: string;
+  };
+  const extraPhones: string[] = Array.isArray(uWithContacts.extraPhones)
+    ? uWithContacts.extraPhones
+    : [];
+  const contactsInfo = {
+    email: uWithContacts.email || "",
+    phone1: extraPhones[0] || uWithContacts.phone || "",
+    phone2: extraPhones[1] || "",
+    viber: "",
+    telegram: "",
+    whatsapp: "",
   };
 
   return (
     <div className="grid grid-cols-12 gap-6">
       <div className="col-span-8 space-y-6">
         <UserProfileCard
-          user={adaptedUser}
+          user={user as User}
           onOpenRestorePassword={handleOpenRestorePasswordDialog}
         />
         <CounterpartyDocuments />
       </div>
       <div className="col-span-4 space-y-6">
-        <UserRolesCard />
-        <UserContactsCard />
+        <UserRolesCard userId={user.id} />
+        <UserContactsCard
+          contacts={contactsInfo}
+          userId={user.id}
+          extraPhones={extraPhones}
+        />
         <UserNotificationsCard />
       </div>
 

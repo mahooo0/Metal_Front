@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 
-import { ChevronDown, Filter, Search } from "lucide-react";
+import { Filter, Search } from "lucide-react";
+import { useQueryState } from "nuqs";
 
 import { Button } from "@/shared/ui/button";
 import { DatePicker } from "@/shared/ui/date-picked";
@@ -16,20 +17,20 @@ import {
 } from "@/shared/ui/select";
 
 export default function CounterpartiesFilter() {
-  const [searchValue, setSearchValue] = useState("");
+  const [searchParam, setSearchParam] = useQueryState("search");
+  const [searchValue, setSearchValue] = useState(searchParam || "");
   const [dateValue, setDateValue] = useState("");
   const [sortValue, setSortValue] = useState("Назвою");
 
   const handleApply = () => {
-    // TODO: Implement apply filter logic
-    // Apply filters with searchValue, dateValue and sortValue
+    setSearchParam(searchValue || null);
   };
 
   const handleReset = () => {
     setSearchValue("");
+    setSearchParam(null);
     setDateValue("");
     setSortValue("Назвою");
-    // TODO: Implement reset filter logic
   };
 
   return (
@@ -51,6 +52,7 @@ export default function CounterpartiesFilter() {
         <Button
           variant="outline"
           size="icon"
+          onClick={handleApply}
           className="h-[48px] w-[48px] rounded-full bg-gray-600 hover:bg-gray-700 border-gray-600">
           <Filter className="h-5 w-5 text-white" />
         </Button>

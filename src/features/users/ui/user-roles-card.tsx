@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-
-import { Pencil, SquarePenIcon, User } from "lucide-react";
+import PermisionImage from "@/public/images/permision.png";
+import { SquarePenIcon, User } from "lucide-react";
 
 import { Button } from "@/shared/ui/button";
 import { Checkbox } from "@/shared/ui/checkbox";
+
+import { UserRolesDialog } from "./user-roles-dialog";
 
 interface UserRolesCardProps {
   roles?: {
@@ -15,14 +17,17 @@ interface UserRolesCardProps {
   }[];
   onEditRoles?: () => void;
   onRoleChange?: (roleId: string, checked: boolean) => void;
+  userId?: string;
 }
 
 export default function UserRolesCard({
   roles = [{ id: "1", name: "Адміністратор", checked: true }],
   onEditRoles,
   onRoleChange,
+  userId,
 }: UserRolesCardProps) {
   const [localRoles, setLocalRoles] = useState(roles);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleRoleChange = (roleId: string, checked: boolean) => {
     setLocalRoles(prev =>
@@ -34,6 +39,7 @@ export default function UserRolesCard({
   };
 
   const handleEditRoles = () => {
+    setIsDialogOpen(true);
     if (onEditRoles) {
       onEditRoles();
     }
@@ -87,6 +93,12 @@ export default function UserRolesCard({
           </div>
         ))}
       </div>
+
+      <UserRolesDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        userId={userId}
+      />
     </div>
   );
 }

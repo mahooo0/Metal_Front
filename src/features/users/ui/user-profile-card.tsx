@@ -2,12 +2,15 @@
 
 import React, { useState } from "react";
 
-import Image from "next/image";
+import { useUserComments } from "@/hooks/use-user-comments";
+import DOMPurify from "dompurify";
+import { MoreHorizontal, SquarePenIcon } from "lucide-react";
+import { useQueryState } from "nuqs";
 
-import NeqrVockax from "@/public/neqr_s_ockami.png";
-import { MoreHorizontal, Pencil, SquarePenIcon } from "lucide-react";
+import { User } from "@/features/auth/types/user.types";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
+import { formatTimeAgo } from "@/shared/lib";
+import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
 import {
   DropdownMenu,
@@ -16,17 +19,11 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 
+import { UserCommentSheet } from "./user-comment-sheet";
+import { UserProfileEditDialog } from "./user-profile-edit-dialog";
+
 interface UserProfileCardProps {
-  user?: {
-    id: string;
-    displayName: string;
-    firstName: string;
-    lastName: string;
-    position: string;
-    userId: string;
-    lastModified?: string;
-    comment?: string;
-  };
+  user: User;
   onEditComment?: () => void;
   onChangePassword?: () => void;
   onMoreActions?: () => void;
@@ -34,26 +31,23 @@ interface UserProfileCardProps {
 }
 
 export default function UserProfileCard({
-  user = {
-    id: "1",
-    displayName: "Albert Flores",
-    firstName: "Albert",
-    lastName: "Flores",
-    position: "Software Engineer",
-    userId: "45776890690",
-    lastModified: "Змінено Лист. 11",
-    comment:
-      "Lorem ipsum dolor sit amet consectetur. Augue cursus lacus sit imperdiet faucibus semper tellus amet risus. Magna id bibendum mattis vitae nec magna non dignissim phasellus. Velit tincidunt enim venenatis placerat accumsan elementum diam cras neque. Felis nec euismod pharetra elit sed tortor egestas volutpat. Nulla id justo blandit a elit. Pellentesque amet dui amet proin facilisi id. Est massa morbi sapien sit lacus. Eget blandit vestibulum euismod arcu id. Risus lorem justo aliquet tellus nec. Ipsum fermentum molestie pharetra at vel orci. Volutpat velit vitae mi scelerisque purus mauris magna ullamcorper aliquam. Phasellus lobortis sed accumsan gravida euismod facilisis turpis eget nibh. In enim pharetra sed mattis. Dui a leo sodales risus dapibus. Gravida id metus elit vitae lectus ultricies. Nibh scelerisque pellentesque varius purus consequat placerat ac sit in. Purus duis netus risus pharetra. At facilisis mus nulla at nisl. Et tristique sit ornare urna ac dui consequat. Augue vel lectus eget sem justo. Diam...",
-  },
+  user,
   onEditComment,
   onChangePassword,
   onMoreActions,
   onOpenRestorePassword,
 }: UserProfileCardProps) {
-  const [isEditingComment, setIsEditingComment] = useState(false);
+  const [, setIsEditingComment] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [, setSheet] = useQueryState("sheet", { defaultValue: "" });
+  const { comments, isLoading: isCommentsLoading } = useUserComments(
+    user.id,
+    true
+  );
 
   const handleEditComment = () => {
     setIsEditingComment(true);
+    setSheet("user-comment");
     if (onEditComment) {
       onEditComment();
     }
@@ -68,6 +62,7 @@ export default function UserProfileCard({
   };
 
   const handleMoreActions = () => {
+    setIsEditDialogOpen(true);
     if (onMoreActions) {
       onMoreActions();
     }
@@ -92,8 +87,17 @@ export default function UserProfileCard({
         </div>
         {/* More Options */}{" "}
         <div className="flex flex-row gap-4 items-center">
-          <div className="text-sm text-[#6D7A87]">id {user.userId}</div>
-          <div className="text-sm text-[#6D7A87]">{user.lastModified}</div>
+          <div className="text-sm text-[#6D7A87]">id {user.id}</div>
+          <div className="text-sm text-[#6D7A87]">
+            {user.createdAt
+              ? (() => {
+                  const date = new Date(user.createdAt);
+                  return isNaN(date.getTime())
+                    ? "Unknown date"
+                    : formatTimeAgo(user.createdAt);
+                })()
+              : "Unknown date"}
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -130,9 +134,42 @@ export default function UserProfileCard({
             <SquarePenIcon className="h-4 w-4 text-[#3A4754]" />
           </Button>
         </div>
-        <div className="text-sm text-[#3A4754] leading-relaxed">
-          {user.comment}
-        </div>
+        {isCommentsLoading ? (
+          <div className="text-sm text-[#6D7A87]">Завантаження...</div>
+        ) : comments && comments.length > 0 ? (
+          <div className="text-[#3A4754]">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-full bg-[#EDEEF0] text-[#3A4754] flex items-center justify-center text-sm font-semibold">
+                {(
+                  comments[0].createdBy?.displayName ||
+                  comments[0].createdBy?.email ||
+                  "Користувач"
+                )
+                  .trim()
+                  .charAt(0)
+                  .toUpperCase()}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-base font-medium">
+                  {comments[0].createdBy?.displayName ||
+                    comments[0].createdBy?.email ||
+                    "Користувач"}
+                </span>
+                <span className="text-xs text-[#6D7A87]">
+                  {formatTimeAgo(comments[0].createdAt)}
+                </span>
+              </div>
+            </div>
+            <div
+              className="text-sm text-[#3A4754] leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(comments[0].text),
+              }}
+            />
+          </div>
+        ) : (
+          <div className="text-sm text-[#6D7A87]">Коментарів немає</div>
+        )}
       </div>
 
       {/* Action Button */}
@@ -144,6 +181,25 @@ export default function UserProfileCard({
           Змінити пароль
         </Button>
       </div>
+
+      {/* Comment Sheet (only comments section) */}
+      <UserCommentSheet
+        onOpenChange={open => setSheet(open ? "user-comment" : "")}
+        userId={user.id}
+      />
+      <UserProfileEditDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        userId={user.id}
+        initial={{
+          displayName: user.displayName,
+          email: user.email,
+          firstName: user.firstName || "",
+          lastName: user.lastName || "",
+          position: user.position || "",
+          isTwoFactorEnabled: user.isTwoFactorEnabled,
+        }}
+      />
     </div>
   );
 }

@@ -53,6 +53,8 @@ export interface DataTableProps<T> {
   columns: DataTableColumn<T>[];
   idField: keyof T;
   pageSize?: number;
+  fontSize?: "xs" | "sm" | "base" | "lg" | "xl";
+  enableEditOnDoubleClick?: boolean;
   onSaveRow?: (row: T) => void;
   onPageChange?: (page: number) => void;
   onRowClick?: (row: T) => void;
@@ -84,6 +86,8 @@ export function DataTable<T extends Record<string, any>>({
   className = "",
   showActionsColumn = true,
   customActions,
+  fontSize = "sm",
+  enableEditOnDoubleClick = true,
 }: DataTableProps<T>) {
   // local copy to allow editing without mutating props
   const [rows, setRows] = React.useState<T[]>(data);
@@ -185,13 +189,19 @@ export function DataTable<T extends Record<string, any>>({
       clearTimeout(clickTimeout.current); // cancel the single-click redirect
       clickTimeout.current = null;
     }
-    // Always trigger edit mode on double click
-    beginEdit(row);
+    // Trigger edit mode on double click only when enabled
+    if (enableEditOnDoubleClick) {
+      beginEdit(row);
+    }
     // Also call the custom double click handler if provided
     if (onRowDoubleClick) {
       onRowDoubleClick(row);
     }
   };
+
+  const sizeClass = React.useMemo(() => {
+    return fontSize ? `text-${fontSize}` : "text-sm";
+  }, [fontSize]);
 
   const renderReadCell = (row: T, key: keyof T) => {
     const column = columns.find(col => col.key === key);
@@ -199,7 +209,8 @@ export function DataTable<T extends Record<string, any>>({
       return column.render(row[key], row);
     }
     return (
-      <span className="text-sm text-gray-900 line-clamp-1">
+      <span
+        className={`${sizeClass} text-gray-900 whitespace-normal break-words`}>
         {String(row[key] ?? "")}
       </span>
     );
@@ -214,8 +225,7 @@ export function DataTable<T extends Record<string, any>>({
     }
 
     // Default editors based on column type
-    const base =
-      "mt-0.5 w-full rounded-md border border-gray-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-gray-400";
+    const base = `mt-0.5 w-full rounded-md border border-gray-200 bg-white px-2 py-1.5 ${sizeClass} outline-none focus:border-gray-400`;
 
     if (
       column?.type === "date" ||
@@ -281,7 +291,7 @@ export function DataTable<T extends Record<string, any>>({
 
   return (
     <div
-      className={`w-full bg-white rounded-[16px] overflow-hidden shadow-md ${className}`}>
+      className={`w-full bg-white rounded-[16px] overflow-y-auto max-h-[70vh] shadow-md ${className}`}>
       <Table>
         <TableHeader>
           <TableRow className="border-gray-100">
@@ -326,7 +336,7 @@ export function DataTable<T extends Record<string, any>>({
                 {columns.map(column => (
                   <TableCell
                     key={String(column.key)}
-                    className="px-4 py-4 text-sm h-fit shadow-xs"
+                    className={`px-4 py-4 ${sizeClass} h-fit shadow-xs`}
                     style={{ width: column.width }}>
                     {isEditing
                       ? renderEditCell(column.key, current[column.key])

@@ -23,7 +23,7 @@ import {
 import { cn } from "../lib";
 import { Button } from "./button";
 
-const Tiptap = () => {
+const Tiptap = ({ onChange }: { onChange?: (html: string) => void } = {}) => {
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -43,6 +43,11 @@ const Tiptap = () => {
     ],
     content: "",
     immediatelyRender: false,
+    onUpdate: ({ editor }) => {
+      if (onChange) {
+        onChange(editor.getHTML());
+      }
+    },
   });
 
   if (!editor) {
