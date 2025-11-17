@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 
 import { PlusIcon } from "lucide-react";
 
@@ -25,8 +25,17 @@ export default function UsersPageClient() {
           <PlusIcon className="w-5 h-5" /> Додати юзера
         </Button>
       </div>
-      <CounterpartiesFilter />
-      <UsersTable />
+      <Suspense
+        fallback={
+          <div className="bg-white rounded-2xl p-6 space-y-6 mt-5">
+            Завантаження фільтрів...
+          </div>
+        }>
+        <CounterpartiesFilter />
+      </Suspense>
+      <Suspense fallback={<div className="mt-5">Завантаження таблиці...</div>}>
+        <UsersTable />
+      </Suspense>
 
       <AddUserDialog
         isOpen={isAddUserDialogOpen}

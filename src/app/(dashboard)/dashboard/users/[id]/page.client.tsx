@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import { useUserProfile } from "@/hooks/use-user-profile";
 
 import { useMe } from "@/features/auth/hooks";
+import { User } from "@/features/auth/types/user.types";
 import CounterpartyDocuments from "@/features/counterparties/ui/counterparty-documents";
 import {
   RestorePasswordDialog,
@@ -15,7 +16,6 @@ import {
   UserProfileCard,
   UserRolesCard,
 } from "@/features/users/ui";
-import { User } from "@/features/auth/types/user.types";
 
 export default function UsersByIdPageClient({
   isProfile,
@@ -76,7 +76,6 @@ export default function UsersByIdPageClient({
       </div>
     );
   }
-
 
   // Подготовка контактной информации с безопасными проверками типов
   const uWithContacts = user as {

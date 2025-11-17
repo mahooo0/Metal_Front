@@ -8,6 +8,7 @@ export * from "../../features/auth/ui/auth-socials";
 export * from "./form";
 export * from "./input";
 export * from "./label";
+export * from "./phone-input";
 export * from "./password-input";
 export * from "./separator";
 export * from "./sidebar";

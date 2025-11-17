@@ -5,7 +5,7 @@ import UsersByIdPageClient from "../users/[id]/page.client";
 export default function ProfilePage() {
   return (
     <div>
-      <UsersByIdPageClient isProfile={true}/>
+      <UsersByIdPageClient isProfile={true} />
     </div>
   );
 }

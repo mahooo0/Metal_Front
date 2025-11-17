@@ -2,12 +2,8 @@
 
 import React from "react";
 
-import { PhoneInput } from "react-international-phone";
-import "react-international-phone/style.css";
-
 import { cn } from "@/shared/lib/utils";
-
-import "./phone-input.css";
+import { PhoneInput } from "@/shared/ui/phone-input";
 
 interface PhoneInputFieldProps {
   value: string;
@@ -27,22 +23,14 @@ export function PhoneInputField({
   error = false,
 }: PhoneInputFieldProps) {
   return (
-    <div className={cn("phone-input-container", error && "error", className)}>
+    <div className={cn("w-full", className)}>
       <PhoneInput
-        defaultCountry="ua"
         value={value}
         onChange={onChange}
         placeholder={placeholder}
         disabled={disabled}
-        className="w-full"
-        hideDropdown={true}
-        disableCountryGuess={true}
-        forceDialCode={true}
-        inputClassName={cn(
-          "w-full min-w-0 h-[48px] rounded-[48px] bg-transparent px-4 py-3 text-sm",
-          "placeholder:text-[#B6BDC3] placeholder:text-sm",
-          "border border-[#E5E7EB] focus:outline-none focus:border-[#1D96F9] focus:ring-1 focus:ring-[#1D96F9]"
-        )}
+        error={error}
+        className={cn("w-full", className)}
       />
     </div>
   );
