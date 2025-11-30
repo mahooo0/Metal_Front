@@ -113,6 +113,21 @@ export class FetchClient {
     });
   }
 
+  public patch<T>(
+    endpoint: string,
+    body?: Record<string, any>,
+    options: RequestOptions = {}
+  ) {
+    return this.request<T>(endpoint, "PATCH", {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(options?.headers || {}),
+      },
+      ...(!!body && { body: JSON.stringify(body) }),
+    });
+  }
+
   public delete<T>(
     endpoint: string,
     options: Omit<RequestOptions, "body"> = {}

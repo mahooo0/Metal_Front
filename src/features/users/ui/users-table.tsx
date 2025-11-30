@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { Check, ChevronDown, Printer, Upload } from "lucide-react";
 
+import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { DataTable } from "@/shared/ui/data-table";
 import {
@@ -24,6 +25,7 @@ export default function UsersTable({
   data = mockUsers,
   onSaveRow,
   onPageChange,
+  onDeleteRow,
   currentPage = 1,
   totalPages: _totalPages = 1,
 }: UsersTableProps) {
@@ -41,7 +43,39 @@ export default function UsersTable({
     handlePageChange,
     isEmpty,
     currentPage: currentPageFromHook,
-  } = useUsersTable({ data, onSaveRow, onPageChange, currentPage });
+  } = useUsersTable({
+    data,
+    onSaveRow,
+    onPageChange,
+    onDeleteRow,
+    currentPage,
+  });
+
+  // Add render function for status column
+  const columnsWithStatus = React.useMemo(() => {
+    return columns.map(col => {
+      if (col.key === "status") {
+        return {
+          ...col,
+          render: (value: string) => {
+            const isActive = value === "ACTIVE";
+            return (
+              <Badge
+                variant={isActive ? "default" : "secondary"}
+                className={`${
+                  isActive
+                    ? "bg-green-100 text-green-800"
+                    : "bg-red-100 text-red-800"
+                } rounded-full px-3 py-1 text-xs font-medium`}>
+                {value === "ACTIVE" ? "Активний" : "Видалено"}
+              </Badge>
+            );
+          },
+        };
+      }
+      return col;
+    });
+  }, [columns]);
 
   return (
     <div className="bg-white rounded-2xl p-6 mt-5">
@@ -128,7 +162,7 @@ export default function UsersTable({
         <div className="w-full">
           <DataTable
             data={currentPageData}
-            columns={columns.filter(col => col.visible)}
+            columns={columnsWithStatus.filter(col => col.visible)}
             idField="id"
             enableEditOnDoubleClick={false}
             fontSize={

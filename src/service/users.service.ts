@@ -59,6 +59,10 @@ class UsersService {
   ) {
     return api.put<{ success: boolean }>(`users/profile/${userId}`, payload);
   }
+
+  public delete(userId: string) {
+    return api.delete<void>(`admin/users/${userId}`);
+  }
 }
 
 export const usersService = new UsersService();

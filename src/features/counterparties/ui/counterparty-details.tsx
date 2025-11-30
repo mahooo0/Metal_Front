@@ -9,42 +9,41 @@ import {
   Ellipsis,
   FileText,
   Hash,
+  MessageSquare,
   Receipt,
 } from "lucide-react";
+
+import { CounterpartyItem } from "@/features/counterparties/types/counterparty.types";
 
 import { Button } from "@/shared/ui/button";
 
 interface CounterpartyDetailsProps {
-  counterparty?: {
-    id: number;
-    name: string;
-    creationDate: string;
-    legalAddress: string;
-    actualAddress: string;
-    bankDetails: string;
-    edrpou: string;
-    ipn: string;
-    vatCertificate: string;
-    changedBy?: string;
-  };
+  counterparty?: CounterpartyItem;
+  onEdit?: () => void;
 }
 
 export default function CounterpartyDetails({
-  counterparty = {
-    id: 45776890690,
-    name: "ТОВ 'Базис'",
-    creationDate: "15/08/2017",
-    legalAddress: "65045, Україна, м Одеса, вул. Велика Арнаутська, 76, офіс 2",
-    actualAddress:
-      "65045, Україна, м Одеса, вул. Велика Арнаутська, 76, офіс 2",
-    bankDetails:
-      'IBAN: UA393287040000026002054312944 в АТ КБ "ПРИВАТБАНК" (МФО 328704)',
-    edrpou: "38935167",
-    ipn: "389351615535",
-    vatCertificate: "200149913",
-    changedBy: "Лист. 11",
-  },
+  counterparty,
+  onEdit,
 }: CounterpartyDetailsProps) {
+  if (!counterparty) {
+    return (
+      <div className="bg-white rounded-2xl p-6 shadow-sm">
+        <p className="text-gray-500">Контрагент не знайдено</p>
+      </div>
+    );
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return dateString;
+    }
+    const dd = String(date.getDate()).padStart(2, "0");
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const yyyy = date.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  };
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm">
       {/* Header */}
@@ -53,18 +52,36 @@ export default function CounterpartyDetails({
           {counterparty.name}
         </h2>
         <div className="flex items-center gap-2">
-          <p className="text-sm text-[#6D7A87]">id {counterparty.id}</p>
+          <p className="text-sm text-[#6D7A87] font-mono">
+            {counterparty.id.substring(0, 8)}...
+          </p>
+          {onEdit && (
           <Button
             variant="ghost"
             size="icon"
-            className="bg-white w-[36px] h-[36px] rounded-full border border-[#B6BDC3] text-[#495969]">
+              onClick={onEdit}
+              className="bg-white w-[36px] h-[36px] rounded-full border border-[#B6BDC3] text-[#495969] hover:bg-gray-50">
             <Ellipsis size={20} />
           </Button>
+          )}
         </div>
       </div>
 
       {/* Details */}
       <div className="space-y-4">
+        {/* Comment */}
+        {counterparty.comment && (
+          <div className="flex items-start gap-3">
+            <div className="flex flex-row items-center gap-2 min-w-[160px]">
+              <MessageSquare className="w-5 h-5 text-[#6D7A87]" />
+              <div className="text-sm text-[#6D7A87]">Коментар:</div>
+            </div>
+            <div className="text-base text-[#3A4754] leading-relaxed">
+              {counterparty.comment}
+            </div>
+          </div>
+        )}
+
         {/* Creation Date */}
         <div className="flex items-center gap-3">
           <div className="flex flex-row items-center gap-2 min-w-[160px]">
@@ -72,7 +89,7 @@ export default function CounterpartyDetails({
             <div className="text-sm text-[#6D7A87]">Створено</div>
           </div>
           <div className="text-base font-medium text-[#3A4754]">
-            {counterparty.creationDate}
+            {formatDate(counterparty.createdAt)}
           </div>
         </div>
 
@@ -105,7 +122,9 @@ export default function CounterpartyDetails({
             <div className="text-sm text-[#6D7A87]">Банківські реквізити:</div>
           </div>
           <div className="text-base text-[#3A4754] leading-relaxed">
-            {counterparty.bankDetails}
+            {counterparty.bankDetails || (
+              <span className="text-gray-400">Не вказано</span>
+            )}
           </div>
         </div>
 
@@ -116,7 +135,9 @@ export default function CounterpartyDetails({
             <div className="text-sm text-[#6D7A87]">ЄДРПОУ:</div>
           </div>
           <div className="text-base font-medium text-[#3A4754]">
-            {counterparty.edrpou}
+            {counterparty.edrpou || (
+              <span className="text-gray-400">Не вказано</span>
+            )}
           </div>
         </div>
 
@@ -127,7 +148,9 @@ export default function CounterpartyDetails({
             <div className="text-sm text-[#6D7A87]">ІПН:</div>
           </div>
           <div className="text-base font-medium text-[#3A4754]">
-            {counterparty.ipn}
+            {counterparty.ipn || (
+              <span className="text-gray-400">Не вказано</span>
+            )}
           </div>
         </div>
 
@@ -138,7 +161,9 @@ export default function CounterpartyDetails({
             <div className="text-sm text-[#6D7A87]">Св-во ПДВ:</div>
           </div>
           <div className="text-base font-medium text-[#3A4754]">
-            {counterparty.vatCertificate}
+            {counterparty.vatCertificate || (
+              <span className="text-gray-400">Не вказано</span>
+            )}
           </div>
         </div>
       </div>

@@ -54,7 +54,7 @@ export default function AddUserDialog({ isOpen, onClose }: AddUserDialogProps) {
             backButtonHref="/auth/login"
             description="Створіть обліковий запис для продовження"
             isShowSocial={false}>
-            <RegisterForm />
+            <RegisterForm onSuccess={onClose} />
           </AuthWrapper>
         </div>
       </DialogContent>

@@ -7,34 +7,39 @@ import Image from "next/image";
 import NeqrVockax from "@/public/neqr_s_ockami.png";
 import { X } from "lucide-react";
 
+import { CounterpartyDocument } from "@/features/counterparties/types/counterparty.types";
+
 import { Button } from "@/shared/ui/button";
 
-interface Document {
-  id: number;
-  name: string;
-  preview: string;
-  selected?: boolean;
-}
-
 interface CounterpartyDocumentsProps {
-  documents?: Document[];
+  documents?: CounterpartyDocument[];
 }
 
 export default function CounterpartyDocuments({
-  documents = [
-    { id: 1, name: "Contract.png", preview: "05.12.2014", selected: true },
-    { id: 2, name: "Contract.png", preview: "05.12.2014", selected: false },
-    { id: 3, name: "Contract.png", preview: "05.12.2014", selected: false },
-    { id: 4, name: "Contract.png", preview: "05.12.2014", selected: false },
-    { id: 5, name: "Contract.png", preview: "05.12.2014", selected: false },
-  ],
+  documents = [],
 }: CounterpartyDocumentsProps) {
   const [activeTab, setActiveTab] = useState(0);
-  const [docs, setDocs] = useState(documents);
+  const [docs, setDocs] = useState(
+    documents.map((doc, index) => ({
+      ...doc,
+      selected: index === 0,
+    }))
+  );
 
-  const tabs = ["Lorem ipsum", "Lorem ipsum", "Lorem ipsum"];
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return dateString;
+    }
+    const dd = String(date.getDate()).padStart(2, "0");
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const yyyy = date.getFullYear();
+    return `${dd}.${mm}.${yyyy}`;
+  };
 
-  const handleDocumentSelect = (id: number) => {
+  const tabs = ["Документи"];
+
+  const handleDocumentSelect = (id: string) => {
     setDocs(prev =>
       prev.map(doc => ({
         ...doc,
@@ -43,7 +48,7 @@ export default function CounterpartyDocuments({
     );
   };
 
-  const handleDocumentRemove = (id: number) => {
+  const handleDocumentRemove = (id: string) => {
     setDocs(prev => prev.filter(doc => doc.id !== id));
   };
 
@@ -77,43 +82,50 @@ export default function CounterpartyDocuments({
       </div>
 
       {/* Documents Grid */}
-      <div className="flex gap-4 overflow-x-auto">
-        {docs.map(doc => (
-          <div
-            key={doc.id}
-            className={`flex-shrink-0 cursor-pointer transition-all  `}
-            onClick={() => handleDocumentSelect(doc.id)}>
-            {/* Document Preview */}
-            <div className="relative rounded-lg border-2 overflow-hidden">
-              {/* Close button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-1 right-1 w-6 h-6 bg-white rounded-full shadow-sm hover:bg-gray-100"
-                onClick={e => {
-                  e.stopPropagation();
-                  handleDocumentRemove(doc.id);
-                }}>
-                <X className="w-3 h-3" />
-              </Button>
+      {docs.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">Немає документів</div>
+      ) : (
+        <div className="flex gap-4 overflow-x-auto">
+          {docs.map(doc => (
+            <div
+              key={doc.id}
+              className={`flex-shrink-0 cursor-pointer transition-all  `}
+              onClick={() => handleDocumentSelect(doc.id)}>
+              {/* Document Preview */}
+              <div className="relative rounded-lg border-2 overflow-hidden">
+                {/* Close button */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-1 right-1 w-6 h-6 bg-white rounded-full shadow-sm hover:bg-gray-100"
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleDocumentRemove(doc.id);
+                  }}>
+                  <X className="w-3 h-3" />
+                </Button>
 
-              {/* Document content preview */}
-              <Image
-                src={NeqrVockax}
-                alt="NeqrVockax"
-                width={100}
-                className="w-full h-full object-cover border-[#F6F6F6] border-1 rounded-lg"
-                height={100}
-              />
-            </div>
+                {/* Document content preview */}
+                <Image
+                  src={NeqrVockax}
+                  alt="NeqrVockax"
+                  width={100}
+                  className="w-full h-full object-cover border-[#F6F6F6] border-1 rounded-lg"
+                  height={100}
+                />
+              </div>
 
-            {/* Document name */}
-            <div className="mt-2 text-center">
-              <p className="text-sm text-gray-600 truncate">{doc.name}</p>
+              {/* Document name */}
+              <div className="mt-2 text-center">
+                <p className="text-sm text-gray-600 truncate">{doc.name}</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {formatDate(doc.createdAt)}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

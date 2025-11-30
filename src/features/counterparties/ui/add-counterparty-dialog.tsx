@@ -18,9 +18,8 @@ import { Textarea } from "@/shared/ui/textarea";
 
 // Types for add counterparty dialog
 export interface AddCounterpartyDialogData {
-  counterpartyName: string;
-  counterpartyId: string;
-  comment: string;
+  name: string;
+  comment?: string;
 }
 
 export interface AddCounterpartyDialogProps {
@@ -30,6 +29,7 @@ export interface AddCounterpartyDialogProps {
   onDelete?: () => void;
   initialData?: Partial<AddCounterpartyDialogData>;
   title?: string;
+  isPending?: boolean;
 }
 
 export default function AddCounterpartyDialog({
@@ -39,13 +39,23 @@ export default function AddCounterpartyDialog({
   onDelete,
   initialData = {},
   title = "Додати контрагента",
+  isPending = false,
 }: AddCounterpartyDialogProps) {
   const [formData, setFormData] = useState<AddCounterpartyDialogData>({
-    counterpartyName: "",
-    counterpartyId: "",
+    name: "",
     comment: "",
     ...initialData,
   });
+
+  // Reset form when dialog opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        name: "",
+        comment: "",
+      });
+    }
+  }, [isOpen]); // Only reset when dialog opens, avoid infinite loops
 
   const handleInputChange = (
     field: keyof AddCounterpartyDialogData,
@@ -58,8 +68,10 @@ export default function AddCounterpartyDialog({
   };
 
   const handleSave = () => {
+    if (!formData.name.trim()) {
+      return;
+    }
     onSave(formData);
-    onClose();
   };
 
   const handleDelete = () => {
@@ -69,8 +81,14 @@ export default function AddCounterpartyDialog({
     }
   };
 
+  const handleClose = () => {
+    if (!isPending) {
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
       <DialogOverlay
         className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50"
         style={{
@@ -96,36 +114,17 @@ export default function AddCounterpartyDialog({
         <div className="space-y-6 mt-6">
           {/* Назва контрагента */}
           <div className="space-y-2">
-            <Label htmlFor="counterpartyName" className="text-sm font-medium">
+            <Label htmlFor="name" className="text-sm font-medium">
               Назва контрагента
             </Label>
             <div className="relative">
               <Input
-                id="counterpartyName"
-                placeholder="input_label"
-                value={formData.counterpartyName}
-                onChange={e =>
-                  handleInputChange("counterpartyName", e.target.value)
-                }
+                id="name"
+                placeholder="Введіть назву контрагента"
+                value={formData.name}
+                onChange={e => handleInputChange("name", e.target.value)}
                 className="bg-white pr-10"
-              />
-            </div>
-          </div>
-
-          {/* ID контрагента */}
-          <div className="space-y-2">
-            <Label htmlFor="counterpartyId" className="text-sm font-medium">
-              ID контрагента
-            </Label>
-            <div className="relative">
-              <Input
-                id="counterpartyId"
-                placeholder="input_label"
-                value={formData.counterpartyId}
-                onChange={e =>
-                  handleInputChange("counterpartyId", e.target.value)
-                }
-                className="bg-white pr-10"
+                required
               />
             </div>
           </div>
@@ -137,8 +136,8 @@ export default function AddCounterpartyDialog({
             </Label>
             <Textarea
               id="comment"
-              placeholder="text_area"
-              value={formData.comment}
+              placeholder="Введіть коментар (необов'язково)"
+              value={formData.comment || ""}
               onChange={e => handleInputChange("comment", e.target.value)}
               className="bg-white min-h-[100px]"
             />
@@ -149,15 +148,17 @@ export default function AddCounterpartyDialog({
         <div className="flex justify-between gap-3 mt-8">
           <Button
             variant="BlackTransparent"
-            onClick={onClose}
+            onClick={handleClose}
+            disabled={isPending}
             className="w-[212px] h-[42px] rounded-[48px]">
             Відмінити
           </Button>
           <Button
             variant="balck"
             onClick={handleSave}
+            disabled={isPending || !formData.name.trim()}
             className="w-[212px] h-[42px] rounded-[48px]">
-            Зберегти
+            {isPending ? "Збереження..." : "Зберегти"}
           </Button>
         </div>
       </DialogContent>

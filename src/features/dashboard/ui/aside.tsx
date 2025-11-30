@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import {
   Box,
@@ -69,7 +69,11 @@ const navigation = [
       { name: "Залишки", href: "/dashboard/warehouse/stock" },
     ],
   },
-  { name: "Користувачі", href: "/dashboard/users", icon: User },
+  { name: "Користувачі", href: "/dashboard/users", icon: User ,children: [
+    { name: "Користувачі", href: "/dashboard/users" },
+    { name: "Ролі", href: "/dashboard/users/roles" },
+ 
+  ] },
   {
     name: "Аналітика та планування",
     href: "/dashboard/analytics",
@@ -84,7 +88,7 @@ const navigation = [
 export default function DashboardAside() {
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<string>("");
-
+  const router = useRouter();
   return (
     <aside className="w-[90px]  bg-white border-r border-gray-200 h-[calc(100vh-120px)] sticky top-[120px] z-10  rounded-tr-[24px]">
       <div className="w-full h-full relative">
@@ -97,30 +101,28 @@ export default function DashboardAside() {
               const isActive = pathname === item.href;
               return (
                 <Button
-                  onMouseEnter={() => {
+                  onClick={() => {
                     if (item.children) setActiveTab(item.name);
+                    else router.push(item.href);
                   }}
                   key={item.name}
-                  className="flex items-center justify-center w-full flex-col gap-1 h-fit  bg-transparent hover:bg-transparent text-[#3A4754] p-0 shadow-none"
-                  asChild>
-                  <Link href={item.href} className="w-full">
-                    <div
+                  className="flex items-center justify-center w-full flex-col gap-1 h-fit  bg-transparent hover:bg-transparent text-[#3A4754] p-0 shadow-none">
+                  <div
+                    className={cn(
+                      "flex items-center justify-center w-10 min-h-10",
+                      isActive && "bg-[#3A4754] rounded-full"
+                    )}>
+                    <item.icon
+                      size={24}
                       className={cn(
-                        "flex items-center justify-center w-10 min-h-10",
-                        isActive && "bg-[#3A4754] rounded-full"
-                      )}>
-                      <item.icon
-                        size={24}
-                        className={cn(
-                          "min-w-6 min-h-6",
-                          isActive && "text-white"
-                        )}
-                      />
-                    </div>
-                    <p className="text-[12px] font-[400] text-wrap  leading-[150%] transition-colors  text-center">
-                      {item.name}
-                    </p>
-                  </Link>
+                        "min-w-6 min-h-6",
+                        isActive && "text-white"
+                      )}
+                    />
+                  </div>
+                  <p className="text-[12px] font-[400] text-wrap  leading-[150%] transition-colors  text-center">
+                    {item.name}
+                  </p>
                 </Button>
               );
             })}

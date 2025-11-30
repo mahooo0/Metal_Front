@@ -291,7 +291,7 @@ export function DataTable<T extends Record<string, any>>({
 
   return (
     <div
-      className={`w-full bg-white rounded-[16px] overflow-y-auto max-h-[70vh] shadow-md ${className}`}>
+      className={`w-full bg-white rounded-[16px] overflow-y-auto  shadow-md ${className}`}>
       <Table>
         <TableHeader>
           <TableRow className="border-gray-100">

@@ -21,7 +21,11 @@ import {
   PasswordInput,
 } from "@/shared/ui";
 
-export function RegisterForm() {
+interface RegisterFormProps {
+  onSuccess?: () => void;
+}
+
+export function RegisterForm({ onSuccess }: RegisterFormProps = {}) {
   const { register, isRegisterPending } = useRegister();
 
   const form = useForm<RegisterSchemaType>({
@@ -35,7 +39,16 @@ export function RegisterForm() {
   });
 
   const onSubmit = (values: RegisterSchemaType) => {
-    register({ values });
+    register(
+      { values },
+      {
+        onSuccess: () => {
+          if (onSuccess) {
+            onSuccess();
+          }
+        },
+      }
+    );
   };
 
   return (

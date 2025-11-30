@@ -2,15 +2,40 @@
 
 import React, { Suspense, useState } from "react";
 
+import { useConfirm } from "@/hooks/use-confirm";
+import { useDeleteUser } from "@/hooks/use-delete-user";
 import { PlusIcon } from "lucide-react";
 
 import { CounterpartiesFilter } from "@/features/counterparties/ui";
-import { AddUserDialog, UsersTable } from "@/features/users/ui";
+import { UserItem } from "@/features/users/types/user.types";
+import { AddUserDialog, ConfirmDialog, UsersTable } from "@/features/users/ui";
 
 import { Button } from "@/shared/ui/button";
 
 export default function UsersPageClient() {
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
+  const [deletingUser, setDeletingUser] = useState<UserItem | null>(null);
+  const { deleteUser, isPending: isDeleting } = useDeleteUser();
+
+  const confirmDelete = useConfirm({
+    onConfirm: () => {
+      if (deletingUser) {
+        deleteUser(deletingUser.id);
+        setDeletingUser(null);
+      }
+    },
+    defaultTitle: "Видалити користувача?",
+    defaultDescription:
+      "Ви впевнені, що хочете видалити цього користувача? Цю дію неможливо скасувати.",
+  });
+
+  const handleDeleteUser = (user: UserItem) => {
+    setDeletingUser(user);
+    confirmDelete.open({
+      title: "Видалити користувача?",
+      description: `Ви впевнені, що хочете видалити користувача ${user.name || user.contacts}? Цю дію неможливо скасувати.`,
+    });
+  };
 
   return (
     <div>
@@ -34,12 +59,22 @@ export default function UsersPageClient() {
         <CounterpartiesFilter />
       </Suspense>
       <Suspense fallback={<div className="mt-5">Завантаження таблиці...</div>}>
-        <UsersTable />
+        <UsersTable onDeleteRow={handleDeleteUser} />
       </Suspense>
 
       <AddUserDialog
         isOpen={isAddUserDialogOpen}
         onClose={() => setIsAddUserDialogOpen(false)}
+      />
+
+      {/* Delete User Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDelete.isOpen}
+        onClose={confirmDelete.close}
+        onConfirm={confirmDelete.confirm}
+        title={confirmDelete.title}
+        description={confirmDelete.description}
+        isPending={isDeleting}
       />
     </div>
   );
