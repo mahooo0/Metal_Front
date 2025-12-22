@@ -1,13 +1,24 @@
-export interface SupplierItem {
+export type {
+  Supplier,
+  SupplierContact,
+  SuppliersQuery,
+  CreateSupplierDto,
+  UpdateSupplierDto,
+  CreateSupplierContactDto,
+} from "@/service/suppliers.service";
+
+export interface SupplierTableRow {
   id: string;
-  creationDate: string;
   name: string;
-  supplierId: string;
-  contacts: string;
+  edrpou: string;
+  ipn: string;
+  legalAddress: string;
+  contactsCount: number;
+  createdAt: string;
 }
 
 export interface SupplierColumn {
-  key: keyof SupplierItem;
+  key: keyof SupplierTableRow;
   label: string;
   visible: boolean;
   sortable?: boolean;
@@ -16,9 +27,12 @@ export interface SupplierColumn {
 }
 
 export interface SuppliersTableProps {
-  data?: SupplierItem[];
-  onSaveRow?: (row: SupplierItem) => void;
-  onPageChange?: (page: number) => void;
+  data?: SupplierTableRow[];
   currentPage?: number;
   totalPages?: number;
+  total?: number;
+  onPageChange?: (page: number) => void;
+  onEditRow?: (row: SupplierTableRow) => void;
+  onDeleteRow?: (row: SupplierTableRow) => void;
+  isLoading?: boolean;
 }

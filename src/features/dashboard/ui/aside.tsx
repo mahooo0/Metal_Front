@@ -61,6 +61,8 @@ const navigation = [
     icon: Box,
     children: [
       { name: "Матеріали", href: "/dashboard/warehouse/materials" },
+      { name: "Довідник матеріалів", href: "/dashboard/warehouse/material-items" },
+      { name: "Категорії матеріалів", href: "/dashboard/warehouse/material-categories" },
       { name: "Закупівля", href: "/dashboard/warehouse/purchase" },
       { name: "Списання", href: "/dashboard/warehouse/write-off" },
       { name: "Інвентаризація", href: "/dashboard/warehouse/inventory" },

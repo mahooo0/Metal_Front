@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { Check, ChevronDown, Printer, Upload } from "lucide-react";
 import { useQueryState } from "nuqs";
 
+import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { DataTable, DataTableColumn } from "@/shared/ui/data-table";
 import {
@@ -16,8 +17,23 @@ import {
 import { Pagination } from "@/shared/ui/pagination";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 
-import { mockTasks } from "../mocks/tasks.mock";
 import { TaskColumn, TaskItem } from "../types/task.types";
+import { getTaskStatusConfig } from "../utils/get-task-status-config";
+
+// Function to format date from ISO string to dd/mm/yyyy
+const formatDate = (dateString: string): string => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  } catch {
+    return dateString;
+  }
+};
 
 // Column definitions for tasks table
 const taskColumns: TaskColumn[] = [
@@ -28,6 +44,9 @@ const taskColumns: TaskColumn[] = [
     sortable: true,
     width: "120px",
     type: "date",
+    render: (value: string | number) => {
+      return <span className="text-sm">{formatDate(String(value))}</span>;
+    },
   },
   {
     key: "startDate",
@@ -36,6 +55,9 @@ const taskColumns: TaskColumn[] = [
     sortable: true,
     width: "150px",
     type: "date",
+    render: (value: string | number) => {
+      return <span className="text-sm">{formatDate(String(value))}</span>;
+    },
   },
   {
     key: "entity",
@@ -70,6 +92,26 @@ const taskColumns: TaskColumn[] = [
     type: "text",
   },
   {
+    key: "status",
+    label: "Статус",
+    visible: true,
+    sortable: true,
+    width: "150px",
+    type: "text",
+    render: (value: string | number) => {
+      const statusConfig = getTaskStatusConfig(value as TaskItem["status"]);
+      return (
+        <Badge
+          variant="secondary"
+          className={`rounded-2xl py-1 px-3 inline-block ${statusConfig.bgColor}`}>
+          <span className={`text-xs font-medium ${statusConfig.textColor}`}>
+            {statusConfig.label}
+          </span>
+        </Badge>
+      );
+    },
+  },
+  {
     key: "comment",
     label: "Коментар",
     visible: true,
@@ -79,10 +121,30 @@ const taskColumns: TaskColumn[] = [
   },
 ];
 
-export default function TasksTable() {
+interface TasksTableProps {
+  data?: TaskItem[];
+  isLoading?: boolean;
+  error?: unknown;
+  currentPage?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
+  onEditRow?: (row: TaskItem) => void;
+  onDeleteRow?: (row: TaskItem) => void;
+}
+
+export default function TasksTable({
+  data = [],
+  isLoading = false,
+  error,
+  currentPage: externalCurrentPage,
+  totalPages: externalTotalPages,
+  onPageChange: externalOnPageChange,
+  onEditRow: externalOnEditRow,
+  onDeleteRow: externalOnDeleteRow,
+}: TasksTableProps) {
   const [columns, setColumns] = useState<TaskColumn[]>(taskColumns);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [internalCurrentPage, setInternalCurrentPage] = useState(1);
+  const [zoom, setZoom] = useState<number>(100);
   const [activeTab, setActiveTab] = useState<"current" | "completed">(
     "current"
   );
@@ -90,16 +152,22 @@ export default function TasksTable() {
     defaultValue: "false",
   });
 
+  const currentPage = externalCurrentPage ?? internalCurrentPage;
+  const totalPages = externalTotalPages ?? 1;
+
+  const handlePageChange = (page: number) => {
+    if (externalOnPageChange) {
+      externalOnPageChange(page);
+    } else {
+      setInternalCurrentPage(page);
+    }
+  };
+
   // Filter data based on active tab
-  const filteredData = mockTasks.filter(task => task.status === activeTab);
-
-  // Calculate total pages based on filtered data length
-  const totalPages = Math.ceil(filteredData.length / pageSize);
-
-  // Get current page data
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const currentPageData = filteredData.slice(startIndex, endIndex);
+  const filteredData = data.filter(
+    task =>
+      task.statusDisplay === (activeTab === "current" ? "current" : "completed")
+  );
 
   // Get counts for each tab (unused for now, but available for future use)
   // const currentCount = mockTasks.filter(
@@ -126,9 +194,13 @@ export default function TasksTable() {
       width: col.width,
       type: col.type,
       options: col.options,
+      render: col.render,
     }));
 
-  const handleViewRow = (_row: TaskItem) => {
+  const [taskId, setTaskId] = useQueryState("taskId");
+
+  const handleViewRow = (row: TaskItem) => {
+    setTaskId(row.id);
     setViewTask("true");
   };
 
@@ -136,30 +208,34 @@ export default function TasksTable() {
     // TODO: Implement save row functionality
   };
 
-  const handleEditRow = (_row: TaskItem) => {
-    // This will trigger edit mode in DataTable
+  const handleEditRow = (row: TaskItem) => {
+    if (externalOnEditRow) {
+      externalOnEditRow(row);
+    }
   };
 
-  const handleDeleteRow = (_row: TaskItem) => {
-    // TODO: Implement delete row functionality
+  const handleDeleteRow = (row: TaskItem) => {
+    if (externalOnDeleteRow) {
+      externalOnDeleteRow(row);
+    }
   };
+
+  const isEmpty = filteredData.length === 0;
 
   return (
-    <div className="max-w-full bg-white rounded-[16px] mt-5">
+    <div className="bg-white rounded-2xl p-6 mt-5">
       <Tabs
         defaultValue="current"
         value={activeTab}
         onValueChange={value => {
           setActiveTab(value as "current" | "completed");
-          setCurrentPage(1); // Reset to first page when switching tabs
+          handlePageChange(1); // Reset to first page when switching tabs
         }}
         className="w-full">
-        {/* Tabs Header */}
-
-        {/* Header with controls */}
-        <div className="flex items-center justify-between p-4 border-b gap-2">
+        {/* Top Actions Bar */}
+        <div className="flex items-center gap-4 mb-6">
           <div className="flex items-center gap-4">
-            {/* Column visibility dropdown */}
+            {/* Columns dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -190,18 +266,31 @@ export default function TasksTable() {
                   variant="outline"
                   size="lg"
                   className="flex h-[42px] items-center gap-2">
-                  100%
+                  {zoom}%
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                <DropdownMenuItem>50%</DropdownMenuItem>
-                <DropdownMenuItem>75%</DropdownMenuItem>
-                <DropdownMenuItem>100%</DropdownMenuItem>
-                <DropdownMenuItem>125%</DropdownMenuItem>
-                <DropdownMenuItem>150%</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setZoom(50)}>
+                  50%
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setZoom(75)}>
+                  75%
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setZoom(100)}>
+                  100%
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setZoom(125)}>
+                  125%
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setZoom(150)}>
+                  150%
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          </div>
+
+          <div className="flex items-center gap-4">
             <Button
               variant="outline"
               size="icon"
@@ -215,109 +304,138 @@ export default function TasksTable() {
               <Upload className="h-4 w-4" />
             </Button>
           </div>
-          <div className="border-b w-full">
-            <TabsList className="w-full justify-start rounded-none bg-transparent p-0 h-auto">
-              <TabsTrigger
-                value="current"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:text-[#1D96F9] data-[state=active]:border-[#1D96F9] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-8 py-4 text-base font-medium">
-                Поточні
-              </TabsTrigger>
-              <TabsTrigger
-                value="completed"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:text-[#1D96F9] data-[state=active]:border-[#1D96F9] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-8 py-4 text-base font-medium">
-                Завершені
-              </TabsTrigger>
-            </TabsList>
-          </div>
-        </div>
-        <div className="flex  mb-3 mt-5 w-fit gap-8 px-4">
-          <div className="flex-1  rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-3 h-3 rounded-full border border-[#8AE4FD] flex items-center justify-center">
-                <div className="w-[9px] h-[9px] rounded-full bg-[#8AE4FD]"></div>
-              </div>
-              <span className="text-sm text-[#3A4754]">Lorem ipsum</span>
-            </div>
-          </div>
-          <div className="flex-1  rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-3 h-3 rounded-full border border-[#8AE4FD] flex items-center justify-center">
-                <div className="w-[9px] h-[9px] rounded-full bg-[#8AE4FD]"></div>
-              </div>
-              <span className="text-sm text-[#3A4754]">Lorem ipsum</span>
-            </div>
-          </div>
         </div>
 
+        {/* Tabs Header */}
+        <div className="border-b mb-6">
+          <TabsList className="w-full justify-start rounded-none bg-transparent p-0 h-auto">
+            <TabsTrigger
+              value="current"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:text-[#1D96F9] data-[state=active]:border-[#1D96F9] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-8 py-4 text-base font-medium">
+              Поточні
+            </TabsTrigger>
+            <TabsTrigger
+              value="completed"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:text-[#1D96F9] data-[state=active]:border-[#1D96F9] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-8 py-4 text-base font-medium">
+              Завершені
+            </TabsTrigger>
+          </TabsList>
+        </div>
         {/* Tab Contents */}
         <TabsContent value="current" className="m-0">
-          {/* Table */}
-          <div className="max-w-[91vw] overflow-x-auto">
-            <DataTable
-              data={currentPageData}
-              columns={visibleColumns}
-              idField="id"
-              onViewRow={handleViewRow}
-              onSaveRow={handleSaveRow}
-              onEditRow={handleEditRow}
-              onDeleteRow={handleDeleteRow}
-              className="rounded-none"
-              showActionsColumn={true}
-            />
-          </div>
+          {/* DataTable */}
+          {isEmpty ? (
+            <div className="flex items-center justify-center py-10 text-gray-500">
+              Nothing found
+            </div>
+          ) : (
+            <div className="w-full">
+              {isLoading ? (
+                <div className="flex items-center justify-center h-64">
+                  <p className="text-[#6D7A87]">Завантаження...</p>
+                </div>
+              ) : error ? (
+                <div className="flex items-center justify-center h-64">
+                  <p className="text-[#6D7A87]">Помилка завантаження даних</p>
+                </div>
+              ) : (
+                <DataTable
+                  data={filteredData}
+                  columns={visibleColumns}
+                  idField="id"
+                  enableEditOnDoubleClick={false}
+                  fontSize={
+                    zoom <= 60
+                      ? "xs"
+                      : zoom <= 85
+                        ? "sm"
+                        : zoom <= 110
+                          ? "base"
+                          : zoom <= 135
+                            ? "lg"
+                            : "xl"
+                  }
+                  onViewRow={handleViewRow}
+                  onSaveRow={handleSaveRow}
+                  onEditRow={handleEditRow}
+                  onDeleteRow={handleDeleteRow}
+                  className="cursor-pointer"
+                  showActionsColumn={true}
+                />
+              )}
+            </div>
+          )}
 
           {/* Pagination */}
-          <div className="p-4 border-t">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-500">
-                Показано {startIndex + 1}-
-                {Math.min(endIndex, filteredData.length)} з{" "}
-                {filteredData.length} записів
-              </div>
+          {!isEmpty && (
+            <div className="flex justify-end mt-6 w-full">
               <div className="w-fit">
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
-                  onPageChange={setCurrentPage}
+                  onPageChange={handlePageChange}
                 />
               </div>
             </div>
-          </div>
+          )}
         </TabsContent>
 
         <TabsContent value="completed" className="m-0">
-          {/* Table */}
-          <div className="max-w-[91vw] overflow-x-auto">
-            <DataTable
-              data={currentPageData}
-              columns={visibleColumns}
-              idField="id"
-              onViewRow={handleViewRow}
-              onSaveRow={handleSaveRow}
-              onEditRow={handleEditRow}
-              onDeleteRow={handleDeleteRow}
-              className="rounded-none"
-              showActionsColumn={true}
-            />
-          </div>
+          {/* DataTable */}
+          {isEmpty ? (
+            <div className="flex items-center justify-center py-10 text-gray-500">
+              Nothing found
+            </div>
+          ) : (
+            <div className="w-full">
+              {isLoading ? (
+                <div className="flex items-center justify-center h-64">
+                  <p className="text-[#6D7A87]">Завантаження...</p>
+                </div>
+              ) : error ? (
+                <div className="flex items-center justify-center h-64">
+                  <p className="text-[#6D7A87]">Помилка завантаження даних</p>
+                </div>
+              ) : (
+                <DataTable
+                  data={filteredData}
+                  columns={visibleColumns}
+                  idField="id"
+                  enableEditOnDoubleClick={false}
+                  fontSize={
+                    zoom <= 60
+                      ? "xs"
+                      : zoom <= 85
+                        ? "sm"
+                        : zoom <= 110
+                          ? "base"
+                          : zoom <= 135
+                            ? "lg"
+                            : "xl"
+                  }
+                  onViewRow={handleViewRow}
+                  onSaveRow={handleSaveRow}
+                  onEditRow={handleEditRow}
+                  onDeleteRow={handleDeleteRow}
+                  className="cursor-pointer"
+                  showActionsColumn={true}
+                />
+              )}
+            </div>
+          )}
 
           {/* Pagination */}
-          <div className="p-4 border-t">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-500">
-                Показано {startIndex + 1}-
-                {Math.min(endIndex, filteredData.length)} з{" "}
-                {filteredData.length} записів
-              </div>
+          {!isEmpty && (
+            <div className="flex justify-end mt-6 w-full">
               <div className="w-fit">
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
-                  onPageChange={setCurrentPage}
+                  onPageChange={handlePageChange}
                 />
               </div>
             </div>
-          </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

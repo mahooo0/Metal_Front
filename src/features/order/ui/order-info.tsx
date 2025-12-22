@@ -19,6 +19,10 @@ import {
   X,
 } from "lucide-react";
 
+import { useDateFormatting } from "@/features/orders/hooks/use-date-formatting";
+import { OrderRequest } from "@/features/orders/types/order-request.types";
+import { getStatusConfig } from "@/features/orders/utils/get-status-config";
+
 import { cn } from "@/shared/lib";
 import { Button } from "@/shared/ui/button";
 import {
@@ -29,8 +33,14 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { Input } from "@/shared/ui/input";
 
-export default function OrderInfo() {
+interface OrderInfoProps {
+  orderRequest: OrderRequest;
+}
+
+export default function OrderInfo({ orderRequest }: OrderInfoProps) {
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
+  const { formatDate } = useDateFormatting();
+  const statusConfig = getStatusConfig(orderRequest.status);
 
   const toggleAccordion = () => {
     setIsAccordionOpen(!isAccordionOpen);
@@ -40,10 +50,12 @@ export default function OrderInfo() {
     <div className="bg-white w-full h-fit rounded-2xl py-5 px-4 ">
       <div className="flex items-center justify-between">
         <h2 className="text-[24px] font-bold text-[#3A4754]">
-          Замовлення 44-08-IK-SR-An{" "}
+          {orderRequest.title}
         </h2>
         <div className="flex items-center gap-2">
-          <p className="text-sm text-[#6D7A87]">Створено 25/08/2025</p>
+          <p className="text-sm text-[#6D7A87]">
+            Створено {formatDate(orderRequest.createdAt)}
+          </p>
           <Button
             variant="ghost"
             size="icon"
@@ -55,8 +67,10 @@ export default function OrderInfo() {
       <div className="flex items-center justify-between mt-5">
         <div className=" flex  items-center gap-2">
           <p className="text-xs text-[#3A4754]">Статус:</p>
-          <div className="bg-[#D3CEFB] rounded-2xl py-1 px-3">
-            <p className="text-xs text-[#6C5BF2]">Завершення</p>
+          <div className={`${statusConfig.bgColor} rounded-2xl py-1 px-3`}>
+            <p className={`text-xs ${statusConfig.textColor}`}>
+              {statusConfig.label}
+            </p>
           </div>
         </div>
         <div className="text-[#6D7A87] flex">
@@ -140,12 +154,16 @@ export default function OrderInfo() {
           <div className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-[#6D7A87]" />
             <p className="text-sm text-[#6D7A87]">Початок прорахунку</p>
-            <span className="text-sm  text-[#3A4754]">15/08/2025</span>
+            <span className="text-sm  text-[#3A4754]">
+              {formatDate(orderRequest.startTime)}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-[#6D7A87]" />
             <p className="text-sm text-[#6D7A87]">Дата видачі</p>
-            <span className="text-sm  text-[#3A4754]">25/08/2025</span>
+            <span className="text-sm  text-[#3A4754]">
+              {formatDate(orderRequest.endTime)}
+            </span>
           </div>
         </div>
 
@@ -160,11 +178,7 @@ export default function OrderInfo() {
             </Button>
           </div>
           <p className="text-sm text-[#6D7A87] leading-relaxed max-w-[680px] line-clamp-4">
-            Lorem ipsum dolor sit amet consectetur. Eget sed netus ultrices
-            pellentesque et lectus. Mauris faucibus malesuada maecenas
-            tincidunt. In sed volutpat malesuada id dictum vehicula malesuada.
-            Maecenas ut libero scelerisque lectus erat. Ultrices pretium mauris
-            sit cras. Sed sit orci imperdiet faucibus mattis viverr
+            {orderRequest.description || "Опис відсутній"}
           </p>
         </div>
       </div>

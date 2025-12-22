@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import { DndContext, DragOverlay, closestCorners } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -7,13 +9,17 @@ import {
 } from "@dnd-kit/sortable";
 import { createPortal } from "react-dom";
 
-import { useDndSensors, useKanbanBoard } from "../hooks";
-import { createMockOrders } from "../mocks";
+import { useDndSensors } from "../hooks";
+import { useKanbanBoardWithApi } from "../hooks/use-kanban-board-with-api";
+import { useKanbanOrders } from "../hooks/use-kanban-orders";
 import CardItem from "./cardItem";
 import Column from "./column";
 
 export default function KanbanBoard() {
+  const [mounted, setMounted] = useState(false);
   const sensors = useDndSensors();
+  useKanbanOrders(); // Загружаем данные и сохраняем в store
+
   const {
     state,
     active,
@@ -21,7 +27,12 @@ export default function KanbanBoard() {
     handleDragStart,
     handleDragOver,
     handleDragEnd,
-  } = useKanbanBoard(createMockOrders());
+    isLoading,
+  } = useKanbanBoardWithApi();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div className="w-full h-full bg-[#FCFCFC] p-6 rounded-2xl">
@@ -47,24 +58,28 @@ export default function KanbanBoard() {
         </SortableContext>
 
         {/* Ghost */}
-        {createPortal(
-          <DragOverlay>
-            {active?.type === "card" && (
-              <CardItem card={active.card} isOverlay />
-            )}
-            {active?.type === "column" && (
-              <div className="w-[320px]">
-                <div className="rounded-xl bg-white shadow-lg ring-1 ring-black/5">
-                  <div className="px-4 py-3 border-b text-sm font-medium">
-                    {active.column.title}
+        {mounted &&
+          typeof document !== "undefined" &&
+          createPortal(
+            <DragOverlay>
+              {active?.type === "card" && (
+                <CardItem card={active.card} isOverlay />
+              )}
+              {active?.type === "column" && (
+                <div className="w-[320px]">
+                  <div className="rounded-xl bg-white shadow-lg ring-1 ring-black/5">
+                    <div className="px-4 py-3 border-b text-sm font-medium">
+                      {active.column.title}
+                    </div>
+                    <div className="p-4 text-sm text-gray-500">
+                      Перетягніть…
+                    </div>
                   </div>
-                  <div className="p-4 text-sm text-gray-500">Перетягніть…</div>
                 </div>
-              </div>
-            )}
-          </DragOverlay>,
-          document.body
-        )}
+              )}
+            </DragOverlay>,
+            document.body
+          )}
       </DndContext>
     </div>
   );

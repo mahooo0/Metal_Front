@@ -1,10 +1,16 @@
 import React from "react";
 
-import { SquarePen, SquareUserRound } from "lucide-react";
+import { SquarePen } from "lucide-react";
+
+import { Counterparty } from "@/features/orders/types/order-request.types";
 
 import { Button } from "@/shared/ui/button";
 
-export default function Conturaqent() {
+interface ConturaqentProps {
+  counterparty: Counterparty;
+}
+
+export default function Conturaqent({ counterparty }: ConturaqentProps) {
   return (
     <div className="bg-white rounded-2xl py-5 px-4">
       <div className="flex items-center justify-between">
@@ -30,9 +36,9 @@ export default function Conturaqent() {
         </Button>
       </div>
       <h5 className="text-[24px] font-bold text-[#3A4754] mt-4">
-        ТОВ “Базис+”
+        {counterparty.name}
       </h5>
-      <p className="text-[14px] text-[#6D7A87] mt-2">id 45776890690</p>
+      <p className="text-[14px] text-[#6D7A87] mt-2">id {counterparty.id}</p>
     </div>
   );
 }

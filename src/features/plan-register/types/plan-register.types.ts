@@ -7,7 +7,7 @@ export interface PlanRegisterItem {
   customer: string;
   metalGrade: string;
   metalThickness: number;
-  files: string;
+  files: string | number;
   actions?: string;
 }
 

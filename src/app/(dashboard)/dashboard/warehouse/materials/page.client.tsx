@@ -1,78 +1,104 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 
-import { PlusIcon, PlusSquareIcon } from "lucide-react";
+import { PlusSquareIcon } from "lucide-react";
+import { useQueryState } from "nuqs";
+
+import { useDeleteMaterial } from "@/hooks/use-delete-material";
+import { useMaterials } from "@/hooks/use-materials";
+import { useUpdateMaterial } from "@/hooks/use-update-material";
 
 import {
-  AddMaterialDialog,
+  mapMaterialToTableRow,
+  MaterialSheet,
   MaterialsFilter,
-  MaterialsSheet,
   MaterialsTable,
 } from "@/features/warehouse/materials";
 import type {
-  AddMaterialData,
   MaterialsFilterData,
-  MaterialsSheetData,
+  MaterialStatus,
+  MaterialTableRow,
 } from "@/features/warehouse/materials";
 
 import { Button } from "@/shared/ui/button";
 
-export default function MaterialsPageClient() {
-  const [isAddMaterialDialogOpen, setIsAddMaterialDialogOpen] =
-    React.useState(false);
-  const [isMaterialsSheetOpen, setIsMaterialsSheetOpen] = React.useState(false);
-  const [selectedMaterial, setSelectedMaterial] =
-    React.useState<MaterialsSheetData | null>(null);
+const initialFilterData: MaterialsFilterData = {
+  search: "",
+  status: "",
+  sortBy: "",
+  sortOrder: "",
+};
 
-  const handleApplyFilter = (data: MaterialsFilterData) => {
-    console.log("Applied filter:", data);
-    // TODO: Implement filter logic
+export default function MaterialsPageClient() {
+  const [filterData, setFilterData] =
+    useState<MaterialsFilterData>(initialFilterData);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // URL state for sheet
+  const [createMaterial, setCreateMaterial] = useQueryState("create");
+  const [editMaterialId, setEditMaterialId] = useQueryState("edit");
+
+  // Fetch materials
+  const { materials, meta, isLoading } = useMaterials({
+    page: currentPage,
+    limit: 20,
+    ...(filterData.search && { search: filterData.search }),
+    ...(filterData.status && { status: filterData.status }),
+    ...(filterData.sortBy && { sortBy: filterData.sortBy }),
+    ...(filterData.sortOrder && { sortOrder: filterData.sortOrder }),
+  });
+
+  // Mutations
+  const { deleteMaterial } = useDeleteMaterial();
+  const updateMutation = useUpdateMaterial();
+
+  // Map API data to table rows
+  const tableData: MaterialTableRow[] = materials.map(mapMaterialToTableRow);
+
+  const handleFilterChange = (data: MaterialsFilterData) => {
+    setFilterData(data);
+    setCurrentPage(1);
   };
 
   const handleResetFilter = () => {
-    console.log("Reset filter");
-    // TODO: Implement reset logic
+    setFilterData(initialFilterData);
+    setCurrentPage(1);
   };
 
   const handleAddMaterial = () => {
-    setIsAddMaterialDialogOpen(true);
+    setEditMaterialId(null);
+    setCreateMaterial("true");
   };
 
-  const handleCloseAddMaterialDialog = () => {
-    setIsAddMaterialDialogOpen(false);
+  const handleEditRow = (row: MaterialTableRow) => {
+    setEditMaterialId(row.id);
+    setCreateMaterial("true");
   };
 
-  const handleSaveMaterial = (data: AddMaterialData) => {
-    console.log("Save material:", data);
-    // TODO: Implement save material logic
+  const handleDeleteRow = (row: MaterialTableRow) => {
+    if (confirm("Ви впевнені, що хочете видалити цей матеріал?")) {
+      deleteMaterial(row.id);
+    }
   };
 
-  const handleViewDetails = (material: MaterialsSheetData) => {
-    setSelectedMaterial(material);
-    setIsMaterialsSheetOpen(true);
+  const handleStatusChange = (id: string, status: MaterialStatus) => {
+    updateMutation.mutate({ id, data: { status } });
   };
 
-  const handleCloseMaterialsSheet = () => {
-    setIsMaterialsSheetOpen(false);
-    setSelectedMaterial(null);
+  const handleCloseSheet = () => {
+    setCreateMaterial(null);
+    setEditMaterialId(null);
   };
 
-  const handleSaveMaterialsSheet = (data: MaterialsSheetData) => {
-    console.log("Save materials sheet:", data);
-    // TODO: Implement save logic
-  };
-
-  const handleRejectMaterialsSheet = () => {
-    console.log("Reject materials sheet");
-    // TODO: Implement reject logic
-  };
+  const isSheetOpen = createMaterial === "true";
 
   return (
     <div>
       <div className="flex items-center justify-between gap-4 mb-5 w-full">
         <h1 className="text-[#3A4754] text-[32px] font-[700]">
-          Матеріали <span className="text-[#B6BDC3] ">(20965)</span>
+          Матеріали{" "}
+          <span className="text-[#B6BDC3]">({meta?.total || 0})</span>
         </h1>
         <Button variant="balck" size="lg" onClick={handleAddMaterial}>
           <PlusSquareIcon className="w-5 h-5" /> Додати матеріал
@@ -80,24 +106,27 @@ export default function MaterialsPageClient() {
       </div>
 
       <MaterialsFilter
-        onApply={handleApplyFilter}
+        filterData={filterData}
+        onFilterChange={handleFilterChange}
         onReset={handleResetFilter}
+        isLoading={isLoading}
       />
 
-      <MaterialsTable onViewDetails={handleViewDetails} />
-
-      <AddMaterialDialog
-        isOpen={isAddMaterialDialogOpen}
-        onClose={handleCloseAddMaterialDialog}
-        onSave={handleSaveMaterial}
+      <MaterialsTable
+        data={tableData}
+        meta={meta}
+        isLoading={isLoading}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        onEditRow={handleEditRow}
+        onDeleteRow={handleDeleteRow}
+        onStatusChange={handleStatusChange}
       />
 
-      <MaterialsSheet
-        isOpen={isMaterialsSheetOpen}
-        onClose={handleCloseMaterialsSheet}
-        material={selectedMaterial}
-        onSave={handleSaveMaterialsSheet}
-        onReject={handleRejectMaterialsSheet}
+      <MaterialSheet
+        isOpen={isSheetOpen}
+        onClose={handleCloseSheet}
+        editMaterialId={editMaterialId}
       />
     </div>
   );

@@ -2,8 +2,6 @@
 
 import React, { useState } from "react";
 
-import { useRouter } from "next/navigation";
-
 import { Check, ChevronDown, Download, Settings, Upload } from "lucide-react";
 
 import { Button } from "@/shared/ui/button";
@@ -15,91 +13,139 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { Pagination } from "@/shared/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select";
 
-import { mockPurchaseData } from "../mocks/purchase.mock";
 import type {
   PurchaseColumn,
-  PurchaseItem,
   PurchaseStatus,
+  PurchaseTableRow,
 } from "../types/purchase.types";
-import EditPurchaseDialog from "./edit-purchase-dialog";
 
-// Status badge component
 const StatusBadge = ({ status }: { status: PurchaseStatus }) => {
   const getStatusStyles = (status: PurchaseStatus) => {
     switch (status) {
-      case "У процесі":
+      case "IN_PROCESS":
         return "bg-green-100 text-green-800";
-      case "На розгляді":
+      case "UNDER_REVIEW":
         return "bg-blue-100 text-blue-800";
-      case "Планування":
+      case "PLANNING":
         return "bg-pink-100 text-pink-800";
-      case "Прорахунок":
+      case "CALCULATION":
         return "bg-purple-100 text-purple-800";
-      case "Запуск":
+      case "LAUNCH":
         return "bg-cyan-100 text-cyan-800";
+      case "RECEIVED":
+        return "bg-emerald-100 text-emerald-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusLabel = (status: PurchaseStatus) => {
+    switch (status) {
+      case "IN_PROCESS":
+        return "У процесі";
+      case "UNDER_REVIEW":
+        return "На розгляді";
+      case "PLANNING":
+        return "Планування";
+      case "CALCULATION":
+        return "Прорахунок";
+      case "LAUNCH":
+        return "Запуск";
+      case "RECEIVED":
+        return "Отримано";
+      default:
+        return status;
     }
   };
 
   return (
     <span
       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusStyles(status)}`}>
-      {status}
+      {getStatusLabel(status)}
     </span>
   );
 };
 
-// Column definitions for purchase table
-const purchaseColumns: PurchaseColumn[] = [
+interface StatusDropdownProps {
+  status: PurchaseStatus;
+  onStatusChange: (status: PurchaseStatus) => void;
+  disabled?: boolean;
+}
+
+const StatusDropdown = ({
+  status,
+  onStatusChange,
+  disabled,
+}: StatusDropdownProps) => {
+  return (
+    <Select
+      value={status}
+      onValueChange={value => onStatusChange(value as PurchaseStatus)}
+      disabled={disabled}>
+      <SelectTrigger className="w-fit h-auto border-0 bg-transparent p-0 focus:ring-0 shadow-none">
+        <SelectValue>
+          <StatusBadge status={status} />
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="IN_PROCESS">У процесі</SelectItem>
+        <SelectItem value="UNDER_REVIEW">На розгляді</SelectItem>
+        <SelectItem value="PLANNING">Планування</SelectItem>
+        <SelectItem value="CALCULATION">Прорахунок</SelectItem>
+        <SelectItem value="LAUNCH">Запуск</SelectItem>
+        <SelectItem value="RECEIVED">Отримано</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+};
+
+const getInitialColumns = (): PurchaseColumn[] => [
   {
     key: "date",
-    label: "↑↓ Дата",
+    label: "Дата",
     visible: true,
     sortable: true,
     width: "120px",
     type: "date",
   },
   {
-    key: "idNumber",
-    label: "ID",
+    key: "purchaseId",
+    label: "ID закупки",
     visible: true,
     sortable: true,
     width: "150px",
     type: "text",
   },
   {
-    key: "quantity",
-    label: "Кількість",
+    key: "supplierName",
+    label: "Постачальник",
     visible: true,
     sortable: true,
-    width: "120px",
+    width: "200px",
     type: "text",
   },
   {
-    key: "amount",
+    key: "totalAmount",
     label: "Сума",
     visible: true,
     sortable: true,
     width: "120px",
-    type: "text",
+    type: "number",
   },
   {
     key: "status",
-    label: "↑↓ Статус",
+    label: "Статус",
     visible: true,
     sortable: true,
-    width: "140px",
-    type: "text",
-    render: (value: PurchaseStatus) => <StatusBadge status={value} />,
-  },
-  {
-    key: "supplier",
-    label: "↑↓ Постачальник",
-    visible: true,
-    sortable: true,
-    width: "250px",
+    width: "150px",
     type: "text",
   },
   {
@@ -112,24 +158,37 @@ const purchaseColumns: PurchaseColumn[] = [
   },
 ];
 
-export default function PurchaseTable() {
-  const router = useRouter();
-  const [columns, setColumns] = useState<PurchaseColumn[]>(purchaseColumns);
-  const [data, setData] = useState<PurchaseItem[]>(mockPurchaseData);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedRow, setSelectedRow] = useState<PurchaseItem | null>(null);
+interface PurchaseTableProps {
+  data: PurchaseTableRow[];
+  meta?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+  isLoading?: boolean;
+  currentPage: number;
+  onPageChange: (page: number) => void;
+  onViewRow?: (row: PurchaseTableRow) => void;
+  onEditRow?: (row: PurchaseTableRow) => void;
+  onDeleteRow?: (row: PurchaseTableRow) => void;
+  onStatusChange?: (id: string, status: PurchaseStatus) => void;
+}
 
-  // Calculate total pages based on data length
-  const totalPages = Math.ceil(data.length / pageSize);
+export default function PurchaseTable({
+  data,
+  meta,
+  isLoading,
+  currentPage,
+  onPageChange,
+  onViewRow,
+  onEditRow,
+  onDeleteRow,
+  onStatusChange,
+}: PurchaseTableProps) {
+  const [columns, setColumns] = useState<PurchaseColumn[]>(getInitialColumns());
 
-  // Get current page data
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const currentPageData = data.slice(startIndex, endIndex);
-
-  const toggleColumnVisibility = (columnKey: keyof PurchaseItem) => {
+  const toggleColumnVisibility = (columnKey: keyof PurchaseTableRow) => {
     setColumns(prev =>
       prev.map(col =>
         col.key === columnKey ? { ...col, visible: !col.visible } : col
@@ -137,7 +196,7 @@ export default function PurchaseTable() {
     );
   };
 
-  const visibleColumns: DataTableColumn<PurchaseItem>[] = columns
+  const visibleColumns: DataTableColumn<PurchaseTableRow>[] = columns
     .filter(col => col.visible)
     .map(col => ({
       key: col.key,
@@ -145,38 +204,44 @@ export default function PurchaseTable() {
       sortable: col.sortable,
       width: col.width,
       type: col.type,
-      render: col.render,
+      render:
+        col.key === "status"
+          ? (value: unknown, item: PurchaseTableRow) => (
+              <StatusDropdown
+                status={value as PurchaseStatus}
+                onStatusChange={newStatus =>
+                  onStatusChange?.(item.id, newStatus)
+                }
+                disabled={isLoading}
+              />
+            )
+          : col.key === "date"
+            ? (value: unknown) =>
+                value
+                  ? new Date(value as string).toLocaleDateString("uk-UA")
+                  : "-"
+            : col.key === "totalAmount"
+              ? (value: unknown) => (value ? `${value} грн` : "-")
+              : col.render,
     }));
 
-  const handleSaveRow = (_row: PurchaseItem) => {
-    router.push(`/dashboard/warehouse/purchase/${_row.id}`);
-
-    // TODO: Implement save row functionality
+  const handleViewRow = (row: PurchaseTableRow) => {
+    onViewRow?.(row);
   };
 
-  const handleEditRow = (row: PurchaseItem) => {
-    setSelectedRow(row);
-    setIsEditDialogOpen(true);
+  const handleEditRow = (row: PurchaseTableRow) => {
+    onEditRow?.(row);
   };
 
-  const handleSaveEdit = (updatedData: {
-    supplier: string;
-    comment: string;
-  }) => {
-    if (selectedRow) {
-      setData(prevData =>
-        prevData.map(item =>
-          item.id === selectedRow.id ? { ...item, ...updatedData } : item
-        )
-      );
-    }
-    setIsEditDialogOpen(false);
-    setSelectedRow(null);
+  const handleDeleteRow = (row: PurchaseTableRow) => {
+    onDeleteRow?.(row);
   };
 
-  const handleDeleteRow = (_row: PurchaseItem) => {
-    // TODO: Implement delete row functionality
-  };
+  const totalPages = meta?.totalPages || 1;
+  const total = meta?.total || data.length;
+  const limit = meta?.limit || 20;
+  const startIndex = (currentPage - 1) * limit;
+  const endIndex = Math.min(startIndex + limit, total);
 
   return (
     <div className="max-w-full bg-white rounded-[16px] mt-5">
@@ -194,7 +259,9 @@ export default function PurchaseTable() {
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
+            <DropdownMenuContent
+              align="start"
+              className="w-56 max-h-[400px] overflow-y-auto">
               {columns.map(column => (
                 <DropdownMenuItem
                   key={column.key}
@@ -247,49 +314,75 @@ export default function PurchaseTable() {
             <Settings className="h-4 w-4" />
           </Button>
         </div>
+
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+            <span className="text-sm text-[#3A4754]">У процесі</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+            <span className="text-sm text-[#3A4754]">На розгляді</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-pink-400 rounded-full"></div>
+            <span className="text-sm text-[#3A4754]">Планування</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+            <span className="text-sm text-[#3A4754]">Прорахунок</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
+            <span className="text-sm text-[#3A4754]">Запуск</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+            <span className="text-sm text-[#3A4754]">Отримано</span>
+          </div>
+        </div>
       </div>
 
       {/* Table */}
-      <div className="max-w-[100vw] overflow-x-auto">
-        <DataTable
-          data={currentPageData}
-          columns={visibleColumns}
-          idField="id"
-          onSaveRow={handleSaveRow}
-          onEditRow={handleEditRow}
-          onDeleteRow={handleDeleteRow}
-          className="rounded-none"
-          showActionsColumn={true}
-        />
+      <div className="max-w-[90vw] overflow-x-auto">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3A4754]"></div>
+          </div>
+        ) : data.length === 0 ? (
+          <div className="flex items-center justify-center py-20 text-gray-500">
+            Закупки не знайдено
+          </div>
+        ) : (
+          <DataTable
+            data={data}
+            columns={visibleColumns}
+            idField="id"
+            onViewRow={handleViewRow}
+            onEditRow={handleEditRow}
+            onDeleteRow={handleDeleteRow}
+            className="rounded-none"
+            showActionsColumn={true}
+          />
+        )}
       </div>
 
       {/* Pagination */}
       <div className="p-4 border-t">
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-500">
-            Показано {startIndex + 1}-{Math.min(endIndex, data.length)} з{" "}
-            {data.length} записів
+            Показано {total > 0 ? startIndex + 1 : 0}-{endIndex} з {total}{" "}
+            записів
           </div>
           <div className="w-fit">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              onPageChange={onPageChange}
             />
           </div>
         </div>
       </div>
-
-      {/* Edit Dialog */}
-      <EditPurchaseDialog
-        isOpen={isEditDialogOpen}
-        onClose={() => {
-          setIsEditDialogOpen(false);
-          setSelectedRow(null);
-        }}
-        onSave={handleSaveEdit}
-        initialData={selectedRow}
-      />
     </div>
   );
 }

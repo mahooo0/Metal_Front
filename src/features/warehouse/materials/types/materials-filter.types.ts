@@ -1,15 +1,15 @@
+import type { MaterialStatus } from "./materials.types";
+
 export interface MaterialsFilterData {
   search: string;
-  category: string;
-  type: string;
-  thickness: string;
-  minimumBalance: string;
-  sheetType: string;
-  showBalances: boolean;
+  status: MaterialStatus | "";
+  sortBy: "quantity" | "createdAt" | "updatedAt" | "";
+  sortOrder: "asc" | "desc" | "";
 }
 
 export interface MaterialsFilterProps {
-  onApply: (data: MaterialsFilterData) => void;
+  filterData: MaterialsFilterData;
+  onFilterChange: (data: MaterialsFilterData) => void;
   onReset: () => void;
-  initialData?: Partial<MaterialsFilterData>;
+  isLoading?: boolean;
 }

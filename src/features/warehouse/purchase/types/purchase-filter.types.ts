@@ -1,13 +1,28 @@
+import type { PurchaseStatus } from "./purchase.types";
+
 export interface PurchaseFilterData {
   search: string;
-  period: string;
-  product: string;
-  status: string;
-  supplier: string;
+  supplierId: string;
+  status: PurchaseStatus | "";
+  dateFrom: string;
+  dateTo: string;
+  sortBy: "date" | "totalAmount" | "status" | "createdAt" | "";
+  sortOrder: "asc" | "desc" | "";
 }
 
 export interface PurchaseFilterProps {
-  onApply: (data: PurchaseFilterData) => void;
+  filterData: PurchaseFilterData;
+  onFilterChange: (data: PurchaseFilterData) => void;
   onReset: () => void;
-  initialData?: Partial<PurchaseFilterData>;
+  isLoading?: boolean;
 }
+
+export const initialPurchaseFilterData: PurchaseFilterData = {
+  search: "",
+  supplierId: "",
+  status: "",
+  dateFrom: "",
+  dateTo: "",
+  sortBy: "",
+  sortOrder: "",
+};

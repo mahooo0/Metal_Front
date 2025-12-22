@@ -1,3 +1,5 @@
+import { TaskStatus } from "./task-api.types";
+
 // Types for tasks table
 export interface TaskItem {
   id: string;
@@ -8,7 +10,8 @@ export interface TaskItem {
   creator: string;
   responsible: string;
   comment: string;
-  status: "current" | "completed";
+  status: TaskStatus;
+  statusDisplay: "current" | "completed"; // For tab filtering
 }
 
 export interface TaskColumn {
