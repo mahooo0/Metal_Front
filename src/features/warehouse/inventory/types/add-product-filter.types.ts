@@ -1,12 +1,11 @@
 export interface AddProductFilterData {
-  showRemnants: "all" | "nonActual";
-  category: string;
-  productType: string;
+  sortOrder: "filled_first" | "empty_first";
   search: string;
 }
 
 export interface AddProductFilterProps {
-  onApply: (data: AddProductFilterData) => void;
+  filterData: AddProductFilterData;
+  onSortChange: (sortOrder: AddProductFilterData["sortOrder"]) => void;
+  onSearchChange: (search: string) => void;
   onReset: () => void;
-  initialData?: Partial<AddProductFilterData>;
 }

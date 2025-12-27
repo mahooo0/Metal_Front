@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { PurchaseItemStatus } from "@/service/purchase-items.service";
 import { Check, ChevronDown, Download, Settings, Upload } from "lucide-react";
+
+import { PurchaseDetailTableRow } from "@/features/warehouse/purchase";
 
 import { Button } from "@/shared/ui/button";
 import { DataTable, DataTableColumn } from "@/shared/ui/data-table";
@@ -13,11 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-
-import type {
-  PurchaseDetailColumn,
-  PurchaseDetailTableRow,
-} from "../types/purchase-detail.types";
+import { Input } from "@/shared/ui/input";
 
 const getItemStatusLabel = (status: PurchaseItemStatus) => {
   switch (status) {
@@ -53,16 +51,109 @@ const getItemStatusStyles = (status: PurchaseItemStatus) => {
   }
 };
 
-const ItemStatusBadge = ({ status }: { status: PurchaseItemStatus }) => {
+interface EditableQuantityProps {
+  value: number;
+  orderedQuantity: number;
+  onSave: (value: number) => void;
+  disabled?: boolean;
+}
+
+const EditableQuantity = ({
+  value,
+  orderedQuantity,
+  onSave,
+  disabled,
+}: EditableQuantityProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const getDisplayValue = (val: number) => (val === 0 ? "" : val.toString());
+  const [inputValue, setInputValue] = useState(getDisplayValue(value));
+
+  // Синхронизируем inputValue с value, когда не редактируется
+  useEffect(() => {
+    if (!isEditing) {
+      setInputValue(getDisplayValue(value));
+    }
+  }, [value, isEditing]);
+
+  const handleStartEdit = () => {
+    if (!disabled) {
+      setInputValue(getDisplayValue(value));
+      setIsEditing(true);
+    }
+  };
+
+  const handleSave = () => {
+    const numValue = inputValue === "" ? 0 : parseInt(inputValue, 10);
+    if (!isNaN(numValue) && numValue >= 0) {
+      onSave(numValue);
+    }
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSave();
+    } else if (e.key === "Escape") {
+      setInputValue(getDisplayValue(value));
+      setIsEditing(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputVal = e.target.value;
+    // Разрешаем только цифры
+    if (inputVal === "" || /^\d+$/.test(inputVal)) {
+      setInputValue(inputVal);
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <Input
+        type="text"
+        value={inputValue}
+        onChange={handleInputChange}
+        onBlur={handleSave}
+        onKeyDown={handleKeyDown}
+        autoFocus
+        className="w-24 h-8 text-center"
+        inputMode="numeric"
+      />
+    );
+  }
+
+  const isComplete = value >= orderedQuantity;
+
   return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getItemStatusStyles(status)}`}>
-      {getItemStatusLabel(status)}
-    </span>
+    <button
+      onClick={handleStartEdit}
+      disabled={disabled}
+      className={`px-3 py-1 rounded font-medium transition-colors ${
+        disabled
+          ? "cursor-not-allowed opacity-50"
+          : "cursor-pointer hover:bg-gray-100"
+      } ${
+        isComplete
+          ? "bg-green-100 text-green-800"
+          : value > 0
+            ? "bg-yellow-100 text-yellow-800"
+            : "bg-gray-100 text-gray-600"
+      }`}>
+      {value} / {orderedQuantity}
+    </button>
   );
 };
 
-const getInitialColumns = (): PurchaseDetailColumn[] => [
+interface AcceptColumn {
+  key: keyof PurchaseDetailTableRow;
+  label: string;
+  visible: boolean;
+  sortable: boolean;
+  width?: string;
+  type: "text" | "number" | "status" | "editable";
+}
+
+const getInitialColumns = (): AcceptColumn[] => [
   {
     key: "productName",
     label: "Назва товару",
@@ -88,14 +179,6 @@ const getInitialColumns = (): PurchaseDetailColumn[] => [
     type: "text",
   },
   {
-    key: "sheetType",
-    label: "Тип листа",
-    visible: true,
-    sortable: true,
-    width: "120px",
-    type: "text",
-  },
-  {
     key: "dimensions",
     label: "Розмір",
     visible: true,
@@ -116,7 +199,7 @@ const getInitialColumns = (): PurchaseDetailColumn[] => [
     label: "Отримано",
     visible: true,
     sortable: true,
-    width: "120px",
+    width: "140px",
     type: "editable",
   },
   {
@@ -128,42 +211,31 @@ const getInitialColumns = (): PurchaseDetailColumn[] => [
     type: "number",
   },
   {
-    key: "salePrice",
-    label: "Ціна продажу",
-    visible: true,
-    sortable: true,
-    width: "120px",
-    type: "number",
-  },
-  {
     key: "status",
     label: "Статус",
     visible: true,
     sortable: true,
-    width: "150px",
+    width: "140px",
     type: "status",
   },
 ];
 
-interface PurchaseDetailTableProps {
+interface PurchaseAcceptTableProps {
   data: PurchaseDetailTableRow[];
   isLoading?: boolean;
-  purchaseId: string;
-  onEditRow?: (row: PurchaseDetailTableRow) => void;
-  onDeleteRow?: (row: PurchaseDetailTableRow) => void;
+  onReceive: (itemId: string, receivedQuantity: number) => void;
   isUpdating?: boolean;
+  isReadOnly?: boolean;
 }
 
-export default function PurchaseDetailTable({
+export default function PurchaseAcceptTable({
   data,
   isLoading,
-  onEditRow,
-  onDeleteRow,
+  onReceive,
   isUpdating,
-}: PurchaseDetailTableProps) {
-  const [columns, setColumns] = useState<PurchaseDetailColumn[]>(
-    getInitialColumns()
-  );
+  isReadOnly,
+}: PurchaseAcceptTableProps) {
+  const [columns, setColumns] = useState<AcceptColumn[]>(getInitialColumns());
 
   const toggleColumnVisibility = (columnKey: keyof PurchaseDetailTableRow) => {
     setColumns(prev =>
@@ -180,31 +252,32 @@ export default function PurchaseDetailTable({
       label: col.label,
       sortable: col.sortable,
       width: col.width,
-      type: col.type === "editable" || col.type === "status" ? "text" : col.type,
+      type:
+        col.type === "editable" || col.type === "status" ? "text" : col.type,
       render:
         col.key === "status"
           ? (value: unknown) => (
-              <ItemStatusBadge status={value as PurchaseItemStatus} />
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getItemStatusStyles(value as PurchaseItemStatus)}`}>
+                {getItemStatusLabel(value as PurchaseItemStatus)}
+              </span>
             )
           : col.key === "receivedQuantity"
             ? (value: unknown, item: PurchaseDetailTableRow) => (
-                <span className="text-gray-600">
-                  {value as number} / {item.orderedQuantity}
-                </span>
+                <EditableQuantity
+                  value={value as number}
+                  orderedQuantity={item.orderedQuantity}
+                  onSave={newValue => onReceive(item.id, newValue)}
+                  disabled={isUpdating || isReadOnly}
+                />
               )
-            : col.key === "purchasePrice" || col.key === "salePrice"
+            : col.key === "purchasePrice"
               ? (value: unknown) =>
-                  value ? `${(value as number).toLocaleString("uk-UA")} грн` : "-"
+                  value
+                    ? `${(value as number).toLocaleString("uk-UA")} грн`
+                    : "-"
               : undefined,
     }));
-
-  const handleEditRow = (row: PurchaseDetailTableRow) => {
-    onEditRow?.(row);
-  };
-
-  const handleDeleteRow = (row: PurchaseDetailTableRow) => {
-    onDeleteRow?.(row);
-  };
 
   return (
     <div className="max-w-full bg-white rounded-[16px] mt-5">
@@ -276,27 +349,19 @@ export default function PurchaseDetailTable({
           </Button>
         </div>
 
-        {/* Status legend */}
+        {/* Legend */}
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-            <span className="text-sm text-[#3A4754]">Замовлено</span>
+            <div className="w-3 h-3 bg-gray-200 rounded"></div>
+            <span className="text-sm text-[#3A4754]">Не отримано</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+            <div className="w-3 h-3 bg-yellow-200 rounded"></div>
             <span className="text-sm text-[#3A4754]">Частково</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-            <span className="text-sm text-[#3A4754]">Готово</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-            <span className="text-sm text-[#3A4754]">Отримано</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-red-400 rounded-full"></div>
-            <span className="text-sm text-[#3A4754]">Скасовано</span>
+            <div className="w-3 h-3 bg-green-200 rounded"></div>
+            <span className="text-sm text-[#3A4754]">Повністю</span>
           </div>
         </div>
       </div>
@@ -316,10 +381,8 @@ export default function PurchaseDetailTable({
             data={data}
             columns={visibleColumns}
             idField="id"
-            onEditRow={handleEditRow}
-            onDeleteRow={handleDeleteRow}
             className="rounded-none"
-            showActionsColumn={true}
+            showActionsColumn={false}
           />
         )}
       </div>

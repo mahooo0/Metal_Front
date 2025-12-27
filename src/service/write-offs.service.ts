@@ -2,23 +2,44 @@ import { api } from "@/shared/api";
 
 import { Material } from "./materials.service";
 
-export interface WriteOff {
+export type WriteOffStatus = "DRAFT" | "PENDING" | "COMPLETED";
+
+export interface WriteOffItem {
   id: string;
+  quantity: number;
+  weight?: number;
+  amount: number;
+  pricePerUnit: number;
+  comment?: string;
   materialId: string;
   material: Material;
-  quantity: number;
-  reason: string;
-  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WriteOff {
+  id: string;
+  writeOffNumber: string;
+  date: string;
+  status: WriteOffStatus;
+  comment?: string;
+  totalQuantity: number;
+  totalAmount: number;
+  items: WriteOffItem[];
+  completedAt?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
+  _count?: { items: number };
   createdAt: string;
   updatedAt: string;
 }
 
 export interface WriteOffsQuery {
-  materialId?: string;
-  reason?: string;
-  startDate?: string;
-  endDate?: string;
-  sortBy?: "createdAt" | "quantity";
+  search?: string;
+  status?: WriteOffStatus;
+  dateFrom?: string;
+  dateTo?: string;
+  sortBy?: "date" | "status" | "totalAmount" | "createdAt";
   sortOrder?: "asc" | "desc";
   page?: number;
   limit?: number;
@@ -35,16 +56,28 @@ export interface WriteOffsResponse {
 }
 
 export interface CreateWriteOffDto {
-  materialId: string;
-  quantity: number;
-  reason: string;
-  notes?: string;
+  writeOffNumber: string;
+  date: string;
+  comment?: string;
 }
 
 export interface UpdateWriteOffDto {
+  writeOffNumber?: string;
+  date?: string;
+  comment?: string;
+}
+
+export interface AddWriteOffItemDto {
+  materialId: string;
+  quantity: number;
+  weight?: number;
+  comment?: string;
+}
+
+export interface UpdateWriteOffItemDto {
   quantity?: number;
-  reason?: string;
-  notes?: string;
+  weight?: number;
+  comment?: string;
 }
 
 class WriteOffsService {
@@ -53,10 +86,10 @@ class WriteOffsService {
       params: {
         page: params.page ?? 1,
         limit: params.limit ?? 20,
-        ...(params.materialId && { materialId: params.materialId }),
-        ...(params.reason && { reason: params.reason }),
-        ...(params.startDate && { startDate: params.startDate }),
-        ...(params.endDate && { endDate: params.endDate }),
+        ...(params.search && { search: params.search }),
+        ...(params.status && { status: params.status }),
+        ...(params.dateFrom && { dateFrom: params.dateFrom }),
+        ...(params.dateTo && { dateTo: params.dateTo }),
         ...(params.sortBy && { sortBy: params.sortBy }),
         ...(params.sortOrder && { sortOrder: params.sortOrder }),
       },
@@ -72,11 +105,43 @@ class WriteOffsService {
   }
 
   public update(id: string, data: UpdateWriteOffDto) {
-    return api.put<WriteOff>(`write-offs/${id}`, data);
+    return api.patch<WriteOff>(`write-offs/${id}`, data);
   }
 
   public delete(id: string) {
     return api.delete<void>(`write-offs/${id}`);
+  }
+
+  public submit(id: string) {
+    return api.post<WriteOff>(`write-offs/${id}/submit`);
+  }
+
+  public approve(id: string) {
+    return api.post<WriteOff>(`write-offs/${id}/approve`);
+  }
+
+  public reject(id: string, reason: string) {
+    return api.post<WriteOff>(`write-offs/${id}/reject`, { reason });
+  }
+
+  // Item methods
+  public addItem(writeOffId: string, data: AddWriteOffItemDto) {
+    return api.post<WriteOffItem>(`write-offs/${writeOffId}/items`, data);
+  }
+
+  public updateItem(
+    writeOffId: string,
+    itemId: string,
+    data: UpdateWriteOffItemDto
+  ) {
+    return api.patch<WriteOffItem>(
+      `write-offs/${writeOffId}/items/${itemId}`,
+      data
+    );
+  }
+
+  public removeItem(writeOffId: string, itemId: string) {
+    return api.delete<void>(`write-offs/${writeOffId}/items/${itemId}`);
   }
 }
 

@@ -3,8 +3,13 @@
 import React, { useState } from "react";
 
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
 
 import { Check, ChevronDown, Download, Settings, Upload } from "lucide-react";
+
+import { useDeleteInventory } from "@/hooks/use-delete-inventory";
+
+import { Inventory, InventoryStatus } from "@/service/inventories.service";
 
 import { Button } from "@/shared/ui/button";
 import { DataTable, DataTableColumn } from "@/shared/ui/data-table";
@@ -16,59 +21,90 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { Pagination } from "@/shared/ui/pagination";
 
-import { mockInventoryData } from "../mocks/inventory.mock";
-import type { InventoryColumn, InventoryItem } from "../types/inventory.types";
-import EditInventoryDialog from "./edit-inventory-dialog";
+interface InventoryColumn {
+  key: keyof InventoryTableRow;
+  label: string;
+  visible: boolean;
+  sortable: boolean;
+  width?: string;
+  type: "text" | "number" | "date" | "status";
+}
 
-// Column definitions for inventory table
-const inventoryColumns: InventoryColumn[] = [
+interface InventoryTableRow {
+  id: string;
+  date: string;
+  inventoryNumber: string;
+  status: InventoryStatus;
+  itemsCount: number;
+  comment?: string;
+}
+
+interface InventoryTableProps {
+  inventories: Inventory[];
+  isLoading?: boolean;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  total: number;
+}
+
+const STATUS_LABELS: Record<InventoryStatus, string> = {
+  IN_PROGRESS: "В процесі",
+  PENDING: "На розгляді",
+  APPROVED: "Затверджено",
+  REJECTED: "Відхилено",
+};
+
+const STATUS_COLORS: Record<InventoryStatus, string> = {
+  IN_PROGRESS: "bg-yellow-100 text-yellow-800",
+  PENDING: "bg-blue-100 text-blue-800",
+  APPROVED: "bg-green-100 text-green-800",
+  REJECTED: "bg-red-100 text-red-800",
+};
+
+function mapInventoryToTableRow(inventory: Inventory): InventoryTableRow {
+  return {
+    id: inventory.id,
+    date: inventory.date,
+    inventoryNumber: inventory.inventoryNumber,
+    status: inventory.status,
+    itemsCount: inventory._count?.items ?? inventory.items?.length ?? 0,
+    comment: inventory.comment,
+  };
+}
+
+const defaultColumns: InventoryColumn[] = [
   {
     key: "date",
-    label: "↑↓ Дата",
+    label: "Дата",
     visible: true,
     sortable: true,
     width: "120px",
     type: "date",
   },
   {
-    key: "idNumber",
-    label: "ID",
+    key: "inventoryNumber",
+    label: "Номер",
     visible: true,
     sortable: true,
     width: "150px",
     type: "text",
   },
   {
-    key: "actualAvailability",
-    label: "Факт. наявність",
+    key: "status",
+    label: "Статус",
     visible: true,
     sortable: true,
     width: "140px",
-    type: "text",
+    type: "status",
   },
   {
-    key: "actualWeight",
-    label: "Фактична вага",
+    key: "itemsCount",
+    label: "Кількість позицій",
     visible: true,
-    sortable: true,
-    width: "140px",
-    type: "text",
-  },
-  {
-    key: "deficiencyRemainder",
-    label: "Недолік/ залишок",
-    visible: true,
-    sortable: true,
-    width: "160px",
-    type: "text",
-  },
-  {
-    key: "metalAmountInStock",
-    label: "Сума металу на складі",
-    visible: true,
-    sortable: true,
-    width: "180px",
-    type: "text",
+    sortable: false,
+    width: "150px",
+    type: "number",
   },
   {
     key: "comment",
@@ -80,24 +116,25 @@ const inventoryColumns: InventoryColumn[] = [
   },
 ];
 
-export default function InventoryTable() {
+export default function InventoryTable({
+  inventories,
+  isLoading = false,
+  currentPage,
+  totalPages,
+  onPageChange,
+  total,
+}: InventoryTableProps) {
   const router = useRouter();
-  const [columns, setColumns] = useState<InventoryColumn[]>(inventoryColumns);
-  const [data, setData] = useState<InventoryItem[]>(mockInventoryData);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedRow, setSelectedRow] = useState<InventoryItem | null>(null);
+  const [columns, setColumns] = useState<InventoryColumn[]>(defaultColumns);
+  const { deleteInventory } = useDeleteInventory();
 
-  // Calculate total pages based on data length
-  const totalPages = Math.ceil(data.length / pageSize);
-
-  // Get current page data
+  const pageSize = 20;
   const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const currentPageData = data.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + pageSize, total);
 
-  const toggleColumnVisibility = (columnKey: keyof InventoryItem) => {
+  const tableData = inventories.map(mapInventoryToTableRow);
+
+  const toggleColumnVisibility = (columnKey: keyof InventoryTableRow) => {
     setColumns(prev =>
       prev.map(col =>
         col.key === columnKey ? { ...col, visible: !col.visible } : col
@@ -105,51 +142,59 @@ export default function InventoryTable() {
     );
   };
 
-  const visibleColumns: DataTableColumn<InventoryItem>[] = columns
+  const visibleColumns: DataTableColumn<InventoryTableRow>[] = columns
     .filter(col => col.visible)
     .map(col => ({
       key: col.key,
       label: col.label,
       sortable: col.sortable,
       width: col.width,
-      type: col.type,
+      type: col.type as "text" | "number" | "date",
+      render:
+        col.key === "date"
+          ? (value: string) => format(new Date(value), "dd.MM.yyyy")
+          : col.key === "status"
+            ? (value: InventoryStatus) => (
+                <span
+                  className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[value]}`}>
+                  {STATUS_LABELS[value]}
+                </span>
+              )
+            : col.key === "comment"
+              ? (value: string) => value || "-"
+              : undefined,
     }));
 
-  const handleSaveRow = (row: InventoryItem) => {
-    // TODO: Implement save row functionality
+  const handleViewRow = (row: InventoryTableRow) => {
     router.push(`/dashboard/warehouse/inventory/${row.id}`);
   };
 
-  const handleEditRow = (row: InventoryItem) => {
-    setSelectedRow(row);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleSaveEdit = () => {
-    // TODO: Implement save edit logic
-    console.log("Save edit for:", selectedRow);
-    setIsEditDialogOpen(false);
-    setSelectedRow(null);
-  };
-
-  const handleDeleteFromDialog = () => {
-    if (selectedRow) {
-      setData(prevData => prevData.filter(item => item.id !== selectedRow.id));
+  const handleEditRow = (row: InventoryTableRow) => {
+    if (row.status === "IN_PROGRESS" || row.status === "REJECTED") {
+      router.push(`/dashboard/warehouse/inventory/${row.id}`);
     }
-    setIsEditDialogOpen(false);
-    setSelectedRow(null);
   };
 
-  const handleDeleteRow = (_row: InventoryItem) => {
-    // TODO: Implement delete row functionality
+  const handleDeleteRow = (row: InventoryTableRow) => {
+    if (row.status !== "APPROVED") {
+      deleteInventory(row.id);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-full bg-white rounded-[16px] mt-5 p-8">
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3A4754]" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-full bg-white rounded-[16px] mt-5">
-      {/* Header with controls */}
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-4">
-          {/* Column visibility dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -173,7 +218,6 @@ export default function InventoryTable() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Zoom dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -193,7 +237,6 @@ export default function InventoryTable() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Action buttons */}
           <Button
             variant="outline"
             size="icon"
@@ -215,48 +258,36 @@ export default function InventoryTable() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="max-w-[100vw] overflow-x-auto">
         <DataTable
-          data={currentPageData}
+          data={tableData}
           columns={visibleColumns}
           idField="id"
-          onSaveRow={handleSaveRow}
+          onViewRow={handleViewRow}
           onEditRow={handleEditRow}
           onDeleteRow={handleDeleteRow}
           className="rounded-none"
           showActionsColumn={true}
+          enableEditOnDoubleClick={false}
         />
       </div>
 
-      {/* Pagination */}
       <div className="p-4 border-t">
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-500">
-            Показано {startIndex + 1}-{Math.min(endIndex, data.length)} з{" "}
-            {data.length} записів
+            Показано {startIndex + 1}-{endIndex} з {total} записів
           </div>
-          <div className="w-fit">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          </div>
+          {totalPages > 1 && (
+            <div className="w-fit">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={onPageChange}
+              />
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Edit Inventory Dialog */}
-      <EditInventoryDialog
-        isOpen={isEditDialogOpen}
-        onClose={() => {
-          setIsEditDialogOpen(false);
-          setSelectedRow(null);
-        }}
-        onSave={handleSaveEdit}
-        onDelete={handleDeleteFromDialog}
-        inventoryData={selectedRow}
-      />
     </div>
   );
 }

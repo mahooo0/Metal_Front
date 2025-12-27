@@ -1,12 +1,17 @@
 export interface AddItemsFilterData {
   search: string;
-  material: string;
-  size: string;
+  materialType: string;
 }
 
 export interface AddItemsFilterProps {
-  onApply: (data: AddItemsFilterData) => void;
+  filterData: AddItemsFilterData;
+  onSearchChange: (value: string) => void;
+  onMaterialTypeChange: (value: string) => void;
   onReset: () => void;
-  initialData?: AddItemsFilterData;
 }
+
+export const initialAddItemsFilterData: AddItemsFilterData = {
+  search: "",
+  materialType: "",
+};
 

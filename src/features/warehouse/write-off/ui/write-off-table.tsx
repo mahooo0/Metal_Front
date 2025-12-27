@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 
-import { useRouter } from "next/navigation";
-
+import { format } from "date-fns";
 import { Check, ChevronDown, Download, Settings, Upload } from "lucide-react";
+
+import { WriteOff, WriteOffStatus } from "@/service/write-offs.service";
 
 import { Button } from "@/shared/ui/button";
 import { DataTable, DataTableColumn } from "@/shared/ui/data-table";
@@ -16,83 +17,121 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { Pagination } from "@/shared/ui/pagination";
 
-import { mockWriteOffData } from "../mocks/write-off.mock";
-import type { WriteOffColumn, WriteOffItem } from "../types/write-off.types";
-import AddSupplierDialog from "./add-supplier-dialog";
-import ConfirmWriteOffDialog from "./confirm-write-off-dialog";
+import type { WriteOffTableRow, WriteOffColumn } from "../types/write-off.types";
 
-export default function WriteOffTable() {
-  const router = useRouter();
-  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
-  const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
-  const [selectedRow, setSelectedRow] = useState<WriteOffItem | null>(null);
+interface WriteOffTableProps {
+  data: WriteOff[];
+  isLoading?: boolean;
+  currentPage: number;
+  totalPages: number;
+  total: number;
+  onPageChange: (page: number) => void;
+  onDelete: (id: string) => void;
+  onView: (id: string) => void;
+  onEdit: (id: string) => void;
+}
 
+const STATUS_LABELS: Record<WriteOffStatus, string> = {
+  DRAFT: "Чернетка",
+  PENDING: "На розгляді",
+  COMPLETED: "Завершено",
+};
+
+const STATUS_COLORS: Record<WriteOffStatus, string> = {
+  DRAFT: "bg-gray-100 text-gray-700",
+  PENDING: "bg-blue-100 text-blue-700",
+  COMPLETED: "bg-green-100 text-green-700",
+};
+
+function mapWriteOffToTableRow(writeOff: WriteOff): WriteOffTableRow {
+  return {
+    id: writeOff.id,
+    writeOffNumber: writeOff.writeOffNumber,
+    date: writeOff.date,
+    status: writeOff.status,
+    totalQuantity: writeOff.totalQuantity,
+    totalAmount: writeOff.totalAmount,
+    itemsCount: writeOff._count?.items ?? writeOff.items?.length ?? 0,
+    comment: writeOff.comment,
+    createdAt: writeOff.createdAt,
+  };
+}
+
+export default function WriteOffTable({
+  data,
+  isLoading,
+  currentPage,
+  totalPages,
+  total,
+  onPageChange,
+  onDelete,
+  onView,
+  onEdit,
+}: WriteOffTableProps) {
   const getWriteOffColumns = (): WriteOffColumn[] => [
     {
-      key: "deliveryDate",
-      label: "↑↓ Дата поставки",
+      key: "writeOffNumber",
+      label: "Номер списання",
       visible: true,
       sortable: true,
       width: "150px",
+      type: "text",
+    },
+    {
+      key: "date",
+      label: "Дата",
+      visible: true,
+      sortable: true,
+      width: "120px",
       type: "date",
     },
     {
-      key: "writeOffId",
-      label: "↑↓ ID",
+      key: "status",
+      label: "Статус",
       visible: true,
       sortable: true,
-      width: "150px",
-      type: "text",
+      width: "140px",
+      type: "status",
     },
     {
-      key: "quantity",
-      label: "Кількість товару",
+      key: "totalQuantity",
+      label: "Кількість",
       visible: true,
       sortable: false,
-      width: "150px",
-      type: "text",
+      width: "100px",
+      type: "number",
     },
     {
-      key: "weight",
-      label: "Вага товару в списанні",
+      key: "totalAmount",
+      label: "Сума",
       visible: true,
-      sortable: false,
-      width: "180px",
-      type: "text",
+      sortable: true,
+      width: "120px",
+      type: "number",
     },
     {
-      key: "amount",
-      label: "Списано на суму",
+      key: "itemsCount",
+      label: "Позицій",
       visible: true,
       sortable: false,
-      width: "150px",
-      type: "text",
+      width: "100px",
+      type: "number",
     },
     {
       key: "comment",
       label: "Коментар",
       visible: true,
       sortable: false,
-      width: "250px",
+      width: "200px",
       type: "text",
     },
   ];
 
-  const [columns, setColumns] =
-    useState<WriteOffColumn[]>(getWriteOffColumns());
-  const [data] = useState<WriteOffItem[]>(mockWriteOffData);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [columns, setColumns] = useState<WriteOffColumn[]>(getWriteOffColumns());
 
-  // Calculate total pages based on data length
-  const totalPages = Math.ceil(data.length / pageSize);
+  const tableData = data.map(mapWriteOffToTableRow);
 
-  // Get current page data
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const currentPageData = data.slice(startIndex, endIndex);
-
-  const toggleColumnVisibility = (columnKey: keyof WriteOffItem) => {
+  const toggleColumnVisibility = (columnKey: keyof WriteOffTableRow) => {
     setColumns(prev =>
       prev.map(col =>
         col.key === columnKey ? { ...col, visible: !col.visible } : col
@@ -100,68 +139,63 @@ export default function WriteOffTable() {
     );
   };
 
-  const visibleColumns: DataTableColumn<WriteOffItem>[] = columns
+  const visibleColumns: DataTableColumn<WriteOffTableRow>[] = columns
     .filter(col => col.visible)
     .map(col => ({
       key: col.key,
       label: col.label,
       sortable: col.sortable,
       width: col.width,
-      type: col.type,
+      type: col.type as "text" | "number" | "date",
+      render:
+        col.key === "date"
+          ? (value: string) => format(new Date(value), "dd.MM.yyyy")
+          : col.key === "status"
+            ? (value: WriteOffStatus) => (
+                <span
+                  className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[value]}`}>
+                  {STATUS_LABELS[value]}
+                </span>
+              )
+            : col.key === "totalAmount"
+              ? (value: number) => `${value.toLocaleString()} грн`
+              : undefined,
     }));
 
-  const handleEditRow = (row: WriteOffItem) => {
-    setSelectedRow(row);
-    setIsSupplierDialogOpen(true);
+  const handleDeleteRow = (row: WriteOffTableRow) => {
+    if (row.status === "DRAFT") {
+      onDelete(row.id);
+    }
   };
 
-  const handleDeleteRow = (_row: WriteOffItem) => {
-    // TODO: Implement delete row functionality
+  const handleViewRow = (row: WriteOffTableRow) => {
+    onView(row.id);
   };
 
-  const handleViewRow = (row: WriteOffItem) => {
-    router.push(`/dashboard/warehouse/write-off/${row.id}`);
+  const handleEditRow = (row: WriteOffTableRow) => {
+    if (row.status === "DRAFT") {
+      onEdit(row.id);
+    }
   };
 
-  const handleConfirmClick = (row: WriteOffItem) => {
-    setSelectedRow(row);
-    setIsConfirmDialogOpen(true);
-  };
+  const pageSize = 20;
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, total);
 
-  const handleConfirmWriteOff = (comment: string) => {
-    console.log("Confirm write-off:", selectedRow, "Comment:", comment);
-    // TODO: Implement confirm write-off logic
-    setIsConfirmDialogOpen(false);
-    setSelectedRow(null);
-  };
-
-  const handleDeleteFromDialog = () => {
-    console.log("Delete write-off:", selectedRow);
-    // TODO: Implement delete logic
-    setIsConfirmDialogOpen(false);
-    setSelectedRow(null);
-  };
-
-  const handleSaveSupplier = (name: string) => {
-    console.log("Save supplier:", name, "for row:", selectedRow);
-    // TODO: Implement save supplier logic
-    setIsSupplierDialogOpen(false);
-    setSelectedRow(null);
-  };
-
-  const handleDeleteSupplier = () => {
-    console.log("Delete supplier for row:", selectedRow);
-    // TODO: Implement delete supplier logic
-    setIsSupplierDialogOpen(false);
-    setSelectedRow(null);
-  };
+  if (isLoading) {
+    return (
+      <div className="max-w-full bg-white rounded-[16px] mt-5 p-8">
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3A4754]" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-full bg-white rounded-[16px] mt-5">
-      {/* Header with controls */}
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-4">
-          {/* Column visibility dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -185,7 +219,6 @@ export default function WriteOffTable() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Zoom dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -205,7 +238,6 @@ export default function WriteOffTable() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Action buttons */}
           <Button
             variant="outline"
             size="icon"
@@ -227,69 +259,34 @@ export default function WriteOffTable() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="max-w-[100vw] overflow-x-auto">
         <DataTable
-          data={currentPageData}
+          data={tableData}
           columns={visibleColumns}
           idField="id"
-          onSaveRow={handleViewRow}
+          onViewRow={handleViewRow}
           onEditRow={handleEditRow}
           onDeleteRow={handleDeleteRow}
           className="rounded-none"
           showActionsColumn={true}
-          customActions={row => (
-            <Button
-              variant="balck"
-              size="sm"
-              onClick={() => handleConfirmClick(row)}
-              className="h-8 px-3 rounded-full">
-              Підтвердити
-            </Button>
-          )}
+          enableEditOnDoubleClick={false}
         />
       </div>
 
-      {/* Pagination */}
       <div className="p-4 border-t">
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-500">
-            Показано {startIndex + 1}-{Math.min(endIndex, data.length)} з{" "}
-            {data.length} записів
+            Показано {startIndex + 1}-{endIndex} з {total} записів
           </div>
           <div className="w-fit">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              onPageChange={onPageChange}
             />
           </div>
         </div>
       </div>
-
-      {/* Confirm Write-Off Dialog */}
-      <ConfirmWriteOffDialog
-        isOpen={isConfirmDialogOpen}
-        onClose={() => {
-          setIsConfirmDialogOpen(false);
-          setSelectedRow(null);
-        }}
-        onConfirm={handleConfirmWriteOff}
-        onDelete={handleDeleteFromDialog}
-        writeOffData={selectedRow}
-      />
-
-      {/* Add Supplier Dialog */}
-      <AddSupplierDialog
-        isOpen={isSupplierDialogOpen}
-        onClose={() => {
-          setIsSupplierDialogOpen(false);
-          setSelectedRow(null);
-        }}
-        onSave={handleSaveSupplier}
-        onDelete={handleDeleteSupplier}
-        writeOffData={selectedRow}
-      />
     </div>
   );
 }

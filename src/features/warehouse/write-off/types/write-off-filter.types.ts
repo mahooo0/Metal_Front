@@ -1,10 +1,24 @@
+import { WriteOffStatus } from "@/service/write-offs.service";
+
 export interface WriteOffFilterData {
   search: string;
-  period: string;
+  status: WriteOffStatus | "";
+  dateFrom: string;
+  dateTo: string;
 }
 
 export interface WriteOffFilterProps {
-  onApply: (data: WriteOffFilterData) => void;
+  filterData: WriteOffFilterData;
+  onSearchChange: (value: string) => void;
+  onStatusChange: (value: WriteOffStatus | "") => void;
+  onDateFromChange: (value: string) => void;
+  onDateToChange: (value: string) => void;
   onReset: () => void;
-  initialData?: Partial<WriteOffFilterData>;
 }
+
+export const initialWriteOffFilterData: WriteOffFilterData = {
+  search: "",
+  status: "",
+  dateFrom: "",
+  dateTo: "",
+};

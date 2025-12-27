@@ -1,21 +1,43 @@
 import { api } from "@/shared/api";
 
-export type InventoryStatus = "draft" | "in_progress" | "completed";
+import { Material } from "./materials.service";
+
+export type InventoryStatus = "IN_PROGRESS" | "PENDING" | "APPROVED" | "REJECTED";
+
+export interface InventoryItem {
+  id: string;
+  systemQuantity: number;
+  actualQuantity: number | null;
+  difference: number | null;
+  comment?: string;
+  inventoryId: string;
+  materialId: string;
+  material: Material;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface Inventory {
   id: string;
+  inventoryNumber: string;
+  date: string;
   status: InventoryStatus;
-  notes?: string;
-  completedAt?: string;
+  comment?: string;
+  approvedAt?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
+  items: InventoryItem[];
+  _count?: { items: number };
   createdAt: string;
   updatedAt: string;
 }
 
 export interface InventoriesQuery {
+  search?: string;
   status?: InventoryStatus;
-  startDate?: string;
-  endDate?: string;
-  sortBy?: "createdAt" | "completedAt";
+  dateFrom?: string;
+  dateTo?: string;
+  sortBy?: "date" | "status" | "createdAt";
   sortOrder?: "asc" | "desc";
   page?: number;
   limit?: number;
@@ -32,13 +54,22 @@ export interface InventoriesResponse {
 }
 
 export interface CreateInventoryDto {
-  status?: InventoryStatus;
-  notes?: string;
+  inventoryNumber: string;
+  date: string;
+  comment?: string;
 }
 
 export interface UpdateInventoryDto {
-  status?: InventoryStatus;
-  notes?: string;
+  comment?: string;
+}
+
+export interface UpdateInventoryItemDto {
+  actualQuantity: number;
+  comment?: string;
+}
+
+export interface RejectInventoryDto {
+  reason: string;
 }
 
 class InventoriesService {
@@ -47,9 +78,10 @@ class InventoriesService {
       params: {
         page: params.page ?? 1,
         limit: params.limit ?? 20,
+        ...(params.search && { search: params.search }),
         ...(params.status && { status: params.status }),
-        ...(params.startDate && { startDate: params.startDate }),
-        ...(params.endDate && { endDate: params.endDate }),
+        ...(params.dateFrom && { dateFrom: params.dateFrom }),
+        ...(params.dateTo && { dateTo: params.dateTo }),
         ...(params.sortBy && { sortBy: params.sortBy }),
         ...(params.sortOrder && { sortOrder: params.sortOrder }),
       },
@@ -65,7 +97,23 @@ class InventoriesService {
   }
 
   public update(id: string, data: UpdateInventoryDto) {
-    return api.put<Inventory>(`inventories/${id}`, data);
+    return api.patch<Inventory>(`inventories/${id}`, data);
+  }
+
+  public updateItem(inventoryId: string, itemId: string, data: UpdateInventoryItemDto) {
+    return api.patch<Inventory>(`inventories/${inventoryId}/items/${itemId}`, data);
+  }
+
+  public submit(id: string) {
+    return api.post<Inventory>(`inventories/${id}/submit`);
+  }
+
+  public approve(id: string) {
+    return api.post<Inventory>(`inventories/${id}/approve`);
+  }
+
+  public reject(id: string, data: RejectInventoryDto) {
+    return api.post<Inventory>(`inventories/${id}/reject`, data);
   }
 
   public delete(id: string) {

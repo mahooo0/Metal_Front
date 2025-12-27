@@ -2,7 +2,15 @@
 
 import React, { useState } from "react";
 
-import { Check, ChevronDown, Download, Settings, Upload } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  ClipboardCheck,
+  Download,
+  Plus,
+  Settings,
+  Upload,
+} from "lucide-react";
 
 import { Button } from "@/shared/ui/button";
 import { DataTable, DataTableColumn } from "@/shared/ui/data-table";
@@ -169,7 +177,8 @@ interface PurchaseTableProps {
   isLoading?: boolean;
   currentPage: number;
   onPageChange: (page: number) => void;
-  onViewRow?: (row: PurchaseTableRow) => void;
+  onAddMaterials?: (row: PurchaseTableRow) => void;
+  onAcceptPurchase?: (row: PurchaseTableRow) => void;
   onEditRow?: (row: PurchaseTableRow) => void;
   onDeleteRow?: (row: PurchaseTableRow) => void;
   onStatusChange?: (id: string, status: PurchaseStatus) => void;
@@ -181,7 +190,8 @@ export default function PurchaseTable({
   isLoading,
   currentPage,
   onPageChange,
-  onViewRow,
+  onAddMaterials,
+  onAcceptPurchase,
   onEditRow,
   onDeleteRow,
   onStatusChange,
@@ -225,10 +235,6 @@ export default function PurchaseTable({
               : col.render,
     }));
 
-  const handleViewRow = (row: PurchaseTableRow) => {
-    onViewRow?.(row);
-  };
-
   const handleEditRow = (row: PurchaseTableRow) => {
     onEditRow?.(row);
   };
@@ -236,6 +242,27 @@ export default function PurchaseTable({
   const handleDeleteRow = (row: PurchaseTableRow) => {
     onDeleteRow?.(row);
   };
+
+  const additionalMenuItems = (row: PurchaseTableRow) => (
+    <>
+      {onAddMaterials && (
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={() => onAddMaterials(row)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Додати матеріали
+        </DropdownMenuItem>
+      )}
+      {onAcceptPurchase && (
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={() => onAcceptPurchase(row)}>
+          <ClipboardCheck className="mr-2 h-4 w-4" />
+          Прийняти закупку
+        </DropdownMenuItem>
+      )}
+    </>
+  );
 
   const totalPages = meta?.totalPages || 1;
   const total = meta?.total || data.length;
@@ -358,7 +385,7 @@ export default function PurchaseTable({
             data={data}
             columns={visibleColumns}
             idField="id"
-            onViewRow={handleViewRow}
+            additionalMenuItems={additionalMenuItems}
             onEditRow={handleEditRow}
             onDeleteRow={handleDeleteRow}
             className="rounded-none"

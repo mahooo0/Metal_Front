@@ -67,6 +67,7 @@ export interface DataTableProps<T> {
   className?: string;
   showActionsColumn?: boolean;
   customActions?: (row: T) => React.ReactNode;
+  additionalMenuItems?: (row: T) => React.ReactNode;
 }
 
 export function DataTable<T extends Record<string, any>>({
@@ -86,6 +87,7 @@ export function DataTable<T extends Record<string, any>>({
   className = "",
   showActionsColumn = true,
   customActions,
+  additionalMenuItems,
   fontSize = "sm",
   enableEditOnDoubleClick = true,
 }: DataTableProps<T>) {
@@ -376,25 +378,32 @@ export function DataTable<T extends Record<string, any>>({
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-40">
-                            <DropdownMenuItem
-                              className="cursor-pointer"
-                              onClick={() => onViewRow && onViewRow(row)}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              Переглянути
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="cursor-pointer"
-                              onClick={() => onEditRow && onEditRow(row)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Редагувати
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="cursor-pointer text-red-600 hover:text-red-700"
-                              onClick={() => onDeleteRow && onDeleteRow(row)}>
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Видалити
-                            </DropdownMenuItem>
+                          <DropdownMenuContent align="end" className="w-48">
+                            {additionalMenuItems && additionalMenuItems(row)}
+                            {onViewRow && (
+                              <DropdownMenuItem
+                                className="cursor-pointer"
+                                onClick={() => onViewRow(row)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Переглянути
+                              </DropdownMenuItem>
+                            )}
+                            {onEditRow && (
+                              <DropdownMenuItem
+                                className="cursor-pointer"
+                                onClick={() => onEditRow(row)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Редагувати
+                              </DropdownMenuItem>
+                            )}
+                            {onDeleteRow && (
+                              <DropdownMenuItem
+                                className="cursor-pointer text-red-600 hover:text-red-700"
+                                onClick={() => onDeleteRow(row)}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Видалити
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>

@@ -215,7 +215,7 @@ export default function PurchaseAcceptTable() {
       </div>
 
       {/* Table */}
-      <div className="max-w-[90vw] overflow-x-auto">
+      <div className="max-w-[calc(100vw - 2rem)] overflow-x-auto">
         <DataTable
           data={currentPageData}
           columns={visibleColumns}

@@ -1,18 +1,22 @@
-export interface WriteOffItem {
+import { WriteOffStatus } from "@/service/write-offs.service";
+
+export interface WriteOffTableRow {
   id: string;
-  deliveryDate: string;
-  writeOffId: string;
-  quantity: string;
-  weight: string;
-  amount: string;
-  comment: string;
+  writeOffNumber: string;
+  date: string;
+  status: WriteOffStatus;
+  totalQuantity: number;
+  totalAmount: number;
+  itemsCount: number;
+  comment?: string;
+  createdAt: string;
 }
 
 export interface WriteOffColumn {
-  key: keyof WriteOffItem;
+  key: keyof WriteOffTableRow;
   label: string;
   visible: boolean;
   sortable: boolean;
   width?: string;
-  type: "text" | "number" | "date";
+  type: "text" | "number" | "date" | "status";
 }

@@ -1,69 +1,82 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+import { useRouter } from "next/navigation";
+import { useQueryState } from "nuqs";
 
 import { useDeletePurchaseItem } from "@/hooks/use-delete-purchase-item";
 import { usePurchaseById } from "@/hooks/use-purchase-by-id";
 import { usePurchaseItems } from "@/hooks/use-purchase-items";
-import { useReceivePurchaseItem } from "@/hooks/use-receive-purchase-item";
-import { useSubmitPurchase } from "@/hooks/use-submit-purchase";
 import { useUpdatePurchase } from "@/hooks/use-update-purchase";
-import { useUpdatePurchaseItemStatus } from "@/hooks/use-update-purchase-item-status";
-import { PurchaseItemStatus } from "@/service/purchase-items.service";
 import { PurchaseStatus } from "@/service/purchases.service";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
-import { useRouter } from "next/navigation";
+import {
+  ArrowLeftIcon,
+  ClipboardCheck,
+  EllipsisIcon,
+  Plus,
+} from "lucide-react";
 
-import { ArrowLeftIcon, EllipsisIcon, Plus } from "lucide-react";
-
+import { ConfirmDialog } from "@/features/users/ui/delete-role-confirm-dialog";
 import {
   AddPurchaseItemSheet,
   EditPurchaseItemSheet,
-  mapPurchaseItemToTableRow,
   PurchaseDetailSearch,
   PurchaseDetailTable,
   PurchaseDetailTableRow,
   PurchaseInfoCards,
+  mapPurchaseItemToTableRow,
 } from "@/features/warehouse/purchase";
 
-import { ConfirmDialog } from "@/features/users/ui/delete-role-confirm-dialog";
-
 import { Button } from "@/shared/ui/button";
+
+const SEARCH_DEBOUNCE_MS = 500;
 
 export default function PurchaseByIdPageClient({ id }: { id: string }) {
   const router = useRouter();
 
+  // URL search parameter with nuqs
+  const [searchParam, setSearchParam] = useQueryState("search");
+  const [searchValue, setSearchValue] = useState(searchParam || "");
+
+  // Debounce search - update URL after delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchValue !== (searchParam || "")) {
+        setSearchParam(searchValue || null);
+      }
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [searchValue, searchParam, setSearchParam]);
+
+  // Sync local state with URL param on external changes
+  useEffect(() => {
+    setSearchValue(searchParam || "");
+  }, [searchParam]);
+
   // API hooks
   const { purchase, isLoading: isLoadingPurchase } = usePurchaseById(id);
-  const { purchaseItems, isLoading: isLoadingItems } = usePurchaseItems(id);
+  const { purchaseItems, isLoading: isLoadingItems } = usePurchaseItems(id, {
+    page: 1,
+    limit: 100,
+    ...(searchParam && { search: searchParam }),
+  });
   const { deletePurchaseItem, isPending: isDeletingItem } =
     useDeletePurchaseItem();
   const updatePurchaseMutation = useUpdatePurchase();
-  const updateItemStatusMutation = useUpdatePurchaseItemStatus();
-  const receiveItemMutation = useReceivePurchaseItem();
-  const submitPurchaseMutation = useSubmitPurchase();
 
   // Local state
   const [isAddItemOpen, setIsAddItemOpen] = useState(false);
   const [editItemId, setEditItemId] = useState<string | null>(null);
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
 
-  // Map data for table
-  const tableData: PurchaseDetailTableRow[] = purchaseItems
-    .map(mapPurchaseItemToTableRow)
-    .filter(item =>
-      searchTerm
-        ? item.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.type.toLowerCase().includes(searchTerm.toLowerCase())
-        : true
-    );
-
-  // Check if all items are READY
-  const allItemsReady =
-    purchaseItems.length > 0 &&
-    purchaseItems.every(item => item.status === "READY");
+  // Map data for table (no client-side filtering - search is done on backend)
+  const tableData: PurchaseDetailTableRow[] = purchaseItems.map(
+    mapPurchaseItemToTableRow
+  );
 
   // Handlers
   const handleBack = () => {
@@ -71,30 +84,11 @@ export default function PurchaseByIdPageClient({ id }: { id: string }) {
   };
 
   const handleSearch = (term: string) => {
-    setSearchTerm(term);
+    setSearchValue(term);
   };
 
   const handleFilter = () => {
     console.log("Filter clicked");
-  };
-
-  const handleStatusChange = (
-    itemId: string,
-    status: PurchaseItemStatus
-  ) => {
-    updateItemStatusMutation.mutate({
-      purchaseId: id,
-      itemId,
-      status,
-    });
-  };
-
-  const handleReceive = (itemId: string, receivedQuantity: number) => {
-    receiveItemMutation.mutate({
-      purchaseId: id,
-      itemId,
-      receivedQuantity,
-    });
   };
 
   const handlePurchaseStatusChange = (status: PurchaseStatus) => {
@@ -104,8 +98,8 @@ export default function PurchaseByIdPageClient({ id }: { id: string }) {
     });
   };
 
-  const handleSubmitPurchase = () => {
-    submitPurchaseMutation.mutate(id);
+  const handleGoToAccept = () => {
+    router.push(`/dashboard/warehouse/purchase/${id}/accept`);
   };
 
   const handleEditRow = (row: PurchaseDetailTableRow) => {
@@ -128,10 +122,9 @@ export default function PurchaseByIdPageClient({ id }: { id: string }) {
   };
 
   const isLoading = isLoadingPurchase || isLoadingItems;
-  const isUpdating =
-    updateItemStatusMutation.isPending ||
-    receiveItemMutation.isPending ||
-    isDeletingItem;
+  const isUpdating = isDeletingItem;
+  const isReceived = purchase?.status === "RECEIVED";
+  const hasItems = purchaseItems.length > 0;
 
   const createdAtFormatted = purchase?.createdAt
     ? format(new Date(purchase.createdAt), "d MMMM", { locale: uk })
@@ -184,28 +177,31 @@ export default function PurchaseByIdPageClient({ id }: { id: string }) {
             status={purchase?.status}
             purchaseId={id}
             createdAt={purchase?.createdAt}
-            allItemsReady={allItemsReady}
+            allItemsReady={false}
             onStatusChange={handlePurchaseStatusChange}
-            onSubmit={handleSubmitPurchase}
-            isSubmitting={submitPurchaseMutation.isPending}
             isUpdatingStatus={updatePurchaseMutation.isPending}
           />
         )}
 
-        {/* Search and Filter + Add button */}
+        {/* Search and Filter + Buttons */}
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
             <PurchaseDetailSearch
+              value={searchValue}
               onSearch={handleSearch}
               onFilter={handleFilter}
             />
           </div>
-          <Button
-            onClick={() => setIsAddItemOpen(true)}
-            className="h-[42px] px-6 bg-[#3A4754] hover:bg-[#2A3A4A] rounded-[48px] gap-2">
-            <Plus className="w-4 h-4" />
-            Додати товар
-          </Button>
+          <div className="flex items-center gap-3">
+            {!isReceived && (
+              <Button
+                onClick={() => setIsAddItemOpen(true)}
+                className="h-[42px] px-6 bg-[#3A4754] hover:bg-[#2A3A4A] rounded-[48px] gap-2">
+                <Plus className="w-4 h-4" />
+                Додати товар
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -214,10 +210,8 @@ export default function PurchaseByIdPageClient({ id }: { id: string }) {
         data={tableData}
         isLoading={isLoading}
         purchaseId={id}
-        onEditRow={handleEditRow}
-        onDeleteRow={handleDeleteRow}
-        onStatusChange={handleStatusChange}
-        onReceive={handleReceive}
+        onEditRow={isReceived ? undefined : handleEditRow}
+        onDeleteRow={isReceived ? undefined : handleDeleteRow}
         isUpdating={isUpdating}
       />
 

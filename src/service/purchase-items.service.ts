@@ -42,6 +42,7 @@ export interface PurchaseItem {
 export interface PurchaseItemsQuery {
   page?: number;
   limit?: number;
+  search?: string;
 }
 
 export interface PurchaseItemsResponse {
@@ -96,6 +97,7 @@ class PurchaseItemsService {
       params: {
         page: params.page ?? 1,
         limit: params.limit ?? 20,
+        ...(params.search && { search: params.search }),
       },
     });
   }

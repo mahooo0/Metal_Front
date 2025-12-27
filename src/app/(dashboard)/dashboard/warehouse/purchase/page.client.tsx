@@ -74,8 +74,12 @@ export default function PurchasePageClient() {
     setCurrentPage(1);
   };
 
-  const handleViewRow = (row: PurchaseTableRow) => {
+  const handleAddMaterials = (row: PurchaseTableRow) => {
     router.push(`/dashboard/warehouse/purchase/${row.id}`);
+  };
+
+  const handleAcceptPurchase = (row: PurchaseTableRow) => {
+    router.push(`/dashboard/warehouse/purchase/${row.id}/accept`);
   };
 
   const handleEditRow = (row: PurchaseTableRow) => {
@@ -170,7 +174,8 @@ export default function PurchasePageClient() {
         isLoading={isLoading}
         currentPage={currentPage}
         onPageChange={setCurrentPage}
-        onViewRow={handleViewRow}
+        onAddMaterials={handleAddMaterials}
+        onAcceptPurchase={handleAcceptPurchase}
         onEditRow={handleEditRow}
         onDeleteRow={handleDeleteRow}
         onStatusChange={handleStatusChange}
